@@ -3,173 +3,198 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Baddo Showdown: Cyber Blast</title>
+    <title>SoundPulse - Beat Sequencer</title>
     <style>
       * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
-        touch-action: none;
-        -webkit-touch-callout: none;
+        touch-action: manipulation;
         user-select: none;
       }
       body {
         font-family: system-ui, -apple-system, sans-serif;
-        background-color: #030712;
+        background-color: #0b0f19;
         color: #f8fafc;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
+        padding: 16px 12px;
         min-height: 100vh;
-        overflow: hidden;
       }
-      .game-container {
+      .app-wrapper {
+        width: 100%;
+        max-width: 520px;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        width: 100%;
-        max-width: 380px;
-        padding: 8px;
-        position: relative;
+        gap: 14px;
       }
-      .hud {
+      .header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        width: 100%;
-        margin-bottom: 8px;
-        font-weight: 800;
-        font-size: 0.95rem;
       }
-      .hud-score { color: #38bdf8; }
-      .hud-lives { color: #ef4444; letter-spacing: 2px; }
-      .hud-diff { color: #f59e0b; text-transform: uppercase; font-size: 0.8rem; }
-      canvas {
-        background: #090d16;
-        border: 2px solid #1e293b;
-        border-radius: 12px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
-        display: block;
-      }
-      .action-bar {
-        display: flex;
-        gap: 8px;
-        margin-top: 8px;
-        width: 100%;
-      }
-      .btn {
-        flex: 1;
-        padding: 10px 0;
-        font-size: 0.85rem;
-        font-weight: 700;
-        border-radius: 8px;
-        cursor: pointer;
-        border: 1px solid #334155;
-        background: #1e293b;
-        color: #f8fafc;
-      }
-      .btn:hover { background: #334155; }
-      .btn-active { color: #4ade80; border-color: #22c55e; }
-
-      /* Difficulty Overlay Menu */
-      .menu-overlay {
-        position: absolute;
-        top: 40px;
-        left: 8px;
-        right: 8px;
-        bottom: 50px;
-        background: rgba(3, 7, 18, 0.92);
-        border: 2px solid #38bdf8;
-        border-radius: 12px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 24px;
-        z-index: 10;
-      }
-      .menu-overlay h1 {
-        font-size: 1.6rem;
+      h1 {
+        font-size: 1.4rem;
         color: #38bdf8;
-        margin-bottom: 6px;
       }
-      .menu-overlay p {
-        color: #94a3b8;
-        font-size: 0.85rem;
-        margin-bottom: 20px;
-        text-align: center;
-      }
-      .diff-options {
+      .controls-bar {
         display: flex;
-        flex-direction: column;
         gap: 10px;
-        width: 100%;
-      }
-      .diff-btn {
+        align-items: center;
+        background: #151d30;
         padding: 12px;
+        border-radius: 12px;
+        border: 1px solid #1e293b;
+      }
+      .btn-play {
+        background: #10b981;
+        color: #022c22;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 8px;
         font-size: 1rem;
         font-weight: 800;
-        border-radius: 8px;
-        border: none;
         cursor: pointer;
       }
-      .diff-easy { background: #10b981; color: #022c22; }
-      .diff-med { background: #f59e0b; color: #451a03; }
-      .diff-hard { background: #ef4444; color: #450a0a; }
-      .diff-btn:hover { opacity: 0.9; }
+      .btn-play.playing {
+        background: #ef4444;
+        color: white;
+      }
+      .tempo-wrap {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        gap: 4px;
+      }
+      .tempo-label {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        display: flex;
+        justify-content: space-between;
+      }
+      input[type="range"] {
+        accent-color: #38bdf8;
+      }
+      .preset-bar {
+        display: flex;
+        gap: 6px;
+      }
+      .btn-preset {
+        flex: 1;
+        background: #1e293b;
+        color: #94a3b8;
+        border: 1px solid #334155;
+        padding: 8px 0;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .btn-preset:active {
+        background: #334155;
+        color: white;
+      }
+
+      /* Sequencer Grid */
+      .sequencer {
+        background: #151d30;
+        border: 1px solid #1e293b;
+        border-radius: 12px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        overflow-x: auto;
+      }
+      .track-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .track-label {
+        width: 60px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #94a3b8;
+        cursor: pointer;
+        text-align: right;
+        padding-right: 6px;
+      }
+      .track-label:hover {
+        color: #38bdf8;
+      }
+      .steps {
+        display: flex;
+        gap: 4px;
+        flex: 1;
+      }
+      .step {
+        flex: 1;
+        height: 28px;
+        min-width: 18px;
+        background: #0b0f19;
+        border: 1px solid #1e293b;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: transform 0.05s;
+      }
+      .step:nth-child(4n + 1) {
+        border-left: 2px solid #334155;
+      }
+      .step.active {
+        background: #38bdf8;
+        box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+      }
+      .step.current {
+        border-color: #facc15;
+        transform: scale(1.08);
+      }
+      .step.active.current {
+        background: #facc15;
+      }
+      .hint {
+        font-size: 0.75rem;
+        color: #64748b;
+        text-align: center;
+      }
     </style>
   </head>
   <body>
-    <div class="game-container">
-      <div class="hud">
-        <span>Score: <span id="scoreText" class="hud-score">0</span></span>
-        <span id="livesText" class="hud-lives">❤️❤️❤️</span>
-        <span id="diffBadge" class="hud-diff">Normal</span>
+    <div class="app-wrapper">
+      <div class="header">
+        <h1>🎹 SoundPulse</h1>
+        <span style="font-size: 0.8rem; color: #94a3b8;">16-Step Looper</span>
       </div>
 
-      <canvas id="gameCanvas" width="340" height="480"></canvas>
-
-      <!-- Main Difficulty Selector Modal -->
-      <div id="startMenu" class="menu-overlay">
-        <h1>👾 BADDO BLAST</h1>
-        <p>Choose combat intensity to begin:</p>
-        <div class="diff-options">
-          <button class="diff-btn diff-easy" onclick="selectDifficulty('easy')">EASY (Slower Baddos)</button>
-          <button class="diff-btn diff-med" onclick="selectDifficulty('medium')">MEDIUM (Classic)</button>
-          <button class="diff-btn diff-hard" onclick="selectDifficulty('hard')">HARD (Fast & Heavy Fire)</button>
+      <div class="controls-bar">
+        <button id="playBtn" class="btn-play" onclick="togglePlay()">▶ Play</button>
+        <div class="tempo-wrap">
+          <div class="tempo-label">
+            <span>TEMPO</span>
+            <span id="bpmText">120 BPM</span>
+          </div>
+          <input type="range" id="bpmSlider" min="70" max="160" value="120" oninput="updateBpm(this.value)" />
         </div>
       </div>
 
-      <div class="action-bar">
-        <button class="btn" id="musicToggle" onclick="toggleAudio()">🎵 Sound: OFF</button>
-        <button class="btn" id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
-        <button class="btn" onclick="openMenu()">⚙ Levels</button>
+      <div class="preset-bar">
+        <button class="btn-preset" onclick="loadPreset('trap')">🔥 Trap Groove</button>
+        <button class="btn-preset" onclick="loadPreset('house')">⚡ 4x4 Beat</button>
+        <button class="btn-preset" onclick="clearAll()">🧹 Clear All</button>
       </div>
+
+      <div class="sequencer" id="seqContainer"></div>
+
+      <div class="hint">Tap any track label to test its sound directly</div>
     </div>
 
     <script>
-      const canvas = document.getElementById('gameCanvas');
-      const ctx = canvas.getContext('2d');
-      const scoreText = document.getElementById('scoreText');
-      const livesText = document.getElementById('livesText');
-      const diffBadge = document.getElementById('diffBadge');
-      const startMenu = document.getElementById('startMenu');
-      const musicToggle = document.getElementById('musicToggle');
-      const pauseBtn = document.getElementById('pauseBtn');
-
-      let currentDiff = 'medium';
-      let score = 0;
-      let lives = 3;
-      let gameOver = false;
-      let isPaused = false;
-      let frame = 0;
-      let damageFlash = 0;
-
-      // In-Memory Web Audio Engine
       let audioCtx = null;
-      let soundEnabled = false;
-      let bgmTimer = null;
+      let isPlaying = false;
+      let currentStep = 0;
+      let bpm = 120;
+      let intervalId = null;
 
       function initAudio() {
         if (!audioCtx) {
@@ -180,386 +205,223 @@
         }
       }
 
-      function playChiptune(freq, type, duration, vol = 0.08) {
-        if (!soundEnabled || !audioCtx) return;
-        try {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = type;
-          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-          gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start();
-          osc.stop(audioCtx.currentTime + duration);
-        } catch (e) {}
-      }
-
-      // Procedural 8-bit Music Track
-      const bgmNotes = [261, 329, 392, 523, 440, 349, 392, 493, 261, 392, 329, 523];
-      let bgmIndex = 0;
-      function startBgmLoop() {
-        if (bgmTimer) clearInterval(bgmTimer);
-        bgmTimer = setInterval(() => {
-          if (soundEnabled && !isPaused && !gameOver && startMenu.style.display === 'none') {
-            playChiptune(bgmNotes[bgmIndex % bgmNotes.length], 'triangle', 0.2, 0.05);
-            if (bgmIndex % 2 === 0) playChiptune(130, 'square', 0.1, 0.03); // bass beat
-            bgmIndex++;
+      // Synthesizer Instruments
+      const instruments = [
+        {
+          name: 'Kick',
+          play: (t) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.setValueAtTime(140, t);
+            osc.frequency.exponentialRampToValueAtTime(35, t + 0.12);
+            gain.gain.setValueAtTime(0.8, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(t);
+            osc.stop(t + 0.15);
           }
-        }, 180);
+        },
+        {
+          name: 'Snare',
+          play: (t) => {
+            // White noise burst + tone
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(220, t);
+            gain.gain.setValueAtTime(0.3, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(t);
+            osc.stop(t + 0.12);
+          }
+        },
+        {
+          name: 'Hi-Hat',
+          play: (t) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(900, t);
+            gain.gain.setValueAtTime(0.2, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(t);
+            osc.stop(t + 0.04);
+          }
+        },
+        {
+          name: 'Clap',
+          play: (t) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(450, t);
+            gain.gain.setValueAtTime(0.25, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(t);
+            osc.stop(t + 0.1);
+          }
+        },
+        {
+          name: 'Bass',
+          play: (t) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(65, t);
+            gain.gain.setValueAtTime(0.5, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(t);
+            osc.stop(t + 0.2);
+          }
+        },
+        {
+          name: 'Laser',
+          play: (t) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(880, t);
+            osc.frequency.exponentialRampToValueAtTime(200, t + 0.1);
+            gain.gain.setValueAtTime(0.2, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(t);
+            osc.stop(t + 0.1);
+          }
+        }
+      ];
+
+      // Grid Pattern Matrix (6 instruments x 16 steps)
+      let grid = instruments.map(() => Array(16).fill(false));
+
+      function buildGridUI() {
+        const container = document.getElementById('seqContainer');
+        container.innerHTML = '';
+
+        instruments.forEach((inst, rIdx) => {
+          const row = document.createElement('div');
+          row.className = 'track-row';
+
+          const label = document.createElement('div');
+          label.className = 'track-label';
+          label.textContent = inst.name;
+          label.onclick = () => {
+            initAudio();
+            inst.play(audioCtx.currentTime);
+          };
+
+          const steps = document.createElement('div');
+          steps.className = 'steps';
+
+          for (let c = 0; c < 16; c++) {
+            const step = document.createElement('div');
+            step.className = 'step' + (grid[rIdx][c] ? ' active' : '');
+            step.dataset.row = rIdx;
+            step.dataset.col = c;
+            step.onclick = () => {
+              initAudio();
+              grid[rIdx][c] = !grid[rIdx][c];
+              step.classList.toggle('active', grid[rIdx][c]);
+            };
+            steps.appendChild(step);
+          }
+
+          row.appendChild(label);
+          row.appendChild(steps);
+          container.appendChild(row);
+        });
       }
 
-      function toggleAudio() {
+      function stepTick() {
+        const time = audioCtx.currentTime;
+
+        // Visual highlights
+        document.querySelectorAll('.step.current').forEach(el => el.classList.remove('current'));
+        document.querySelectorAll(`.step[data-col="${currentStep}"]`).forEach(el => el.classList.add('current'));
+
+        // Play active sounds
+        instruments.forEach((inst, rIdx) => {
+          if (grid[rIdx][currentStep]) {
+            inst.play(time);
+          }
+        });
+
+        currentStep = (currentStep + 1) % 16;
+      }
+
+      function togglePlay() {
         initAudio();
-        soundEnabled = !soundEnabled;
-        if (soundEnabled) {
-          musicToggle.textContent = '🎵 Sound: ON';
-          musicToggle.classList.add('btn-active');
-          startBgmLoop();
+        const btn = document.getElementById('playBtn');
+
+        if (isPlaying) {
+          clearInterval(intervalId);
+          isPlaying = false;
+          btn.textContent = '▶ Play';
+          btn.classList.remove('playing');
+          document.querySelectorAll('.step.current').forEach(el => el.classList.remove('current'));
+          currentStep = 0;
         } else {
-          musicToggle.textContent = '🎵 Sound: OFF';
-          musicToggle.classList.remove('btn-active');
-          if (bgmTimer) clearInterval(bgmTimer);
+          isPlaying = true;
+          btn.textContent = '⏹ Stop';
+          btn.classList.add('playing');
+          const intervalMs = (60 / bpm / 4) * 1000;
+          stepTick();
+          intervalId = setInterval(stepTick, intervalMs);
         }
       }
 
-      // Difficulty Settings
-      const DIFF_SETTINGS = {
-        easy: { spawnRate: 65, enemySpeed: 1.5, bulletSpeed: 3.5, fireRate: 90 },
-        medium: { spawnRate: 45, enemySpeed: 2.2, bulletSpeed: 5.0, fireRate: 65 },
-        hard: { spawnRate: 30, enemySpeed: 3.0, bulletSpeed: 6.5, fireRate: 45 }
-      };
-
-      // Player State
-      let player = {
-        x: 170,
-        y: 420,
-        radius: 18,
-        targetX: 170,
-        targetY: 420,
-        fireCooldown: 0
-      };
-
-      let bullets = [];
-      let enemyLasers = [];
-      let enemies = [];
-      let sparks = [];
-
-      // Mobile Touch Handler (Strictly Prevent Screen Drag)
-      function updatePointer(clientX, clientY) {
-        const rect = canvas.getBoundingClientRect();
-        const factorX = canvas.width / rect.width;
-        const factorY = canvas.height / rect.height;
-        player.targetX = (clientX - rect.left) * factorX;
-        player.targetY = (clientY - rect.top) * factorY;
-
-        // Keep inside bounds
-        player.targetX = Math.max(player.radius, Math.min(canvas.width - player.radius, player.targetX));
-        player.targetY = Math.max(player.radius + 40, Math.min(canvas.height - player.radius, player.targetY));
-      }
-
-      let isTouching = false;
-      canvas.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        isTouching = true;
-        initAudio();
-        updatePointer(e.touches[0].clientX, e.touches[0].clientY);
-      }, { passive: false });
-
-      canvas.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        if (isTouching) {
-          updatePointer(e.touches[0].clientX, e.touches[0].clientY);
-        }
-      }, { passive: false });
-
-      canvas.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        isTouching = false;
-      }, { passive: false });
-
-      // Mouse drag fallback
-      let isMouseDown = false;
-      canvas.addEventListener('mousedown', (e) => {
-        isMouseDown = true;
-        initAudio();
-        updatePointer(e.clientX, e.clientY);
-      });
-      window.addEventListener('mousemove', (e) => {
-        if (isMouseDown) updatePointer(e.clientX, e.clientY);
-      });
-      window.addEventListener('mouseup', () => { isMouseDown = false; });
-
-      function selectDifficulty(level) {
-        initAudio();
-        currentDiff = level;
-        diffBadge.textContent = level;
-        startMenu.style.display = 'none';
-        resetGame();
-      }
-
-      function openMenu() {
-        startMenu.style.display = 'flex';
-        isPaused = true;
-      }
-
-      function resetGame() {
-        score = 0;
-        lives = 3;
-        gameOver = false;
-        isPaused = false;
-        bullets = [];
-        enemyLasers = [];
-        enemies = [];
-        sparks = [];
-        player.x = 170;
-        player.y = 420;
-        player.targetX = 170;
-        player.targetY = 420;
-        scoreText.textContent = score;
-        updateLivesDisplay();
-        requestAnimationFrame(gameLoop);
-      }
-
-      function updateLivesDisplay() {
-        livesText.textContent = '❤️'.repeat(Math.max(0, lives));
-      }
-
-      function spawnEnemy() {
-        const config = DIFF_SETTINGS[currentDiff];
-        const size = 30;
-        const x = Math.random() * (canvas.width - size - 20) + 10;
-        enemies.push({
-          x,
-          y: -size,
-          size,
-          speed: config.enemySpeed + Math.random() * 0.5,
-          fireTimer: Math.floor(Math.random() * config.fireRate) + 20
-        });
-      }
-
-      function addExplosion(x, y, color) {
-        playChiptune(120, 'square', 0.15, 0.1);
-        for (let i = 0; i < 10; i++) {
-          sparks.push({
-            x, y,
-            vx: (Math.random() - 0.5) * 5,
-            vy: (Math.random() - 0.5) * 5,
-            life: 20,
-            color
-          });
+      function updateBpm(val) {
+        bpm = parseInt(val, 10);
+        document.getElementById('bpmText').textContent = bpm + ' BPM';
+        if (isPlaying) {
+          clearInterval(intervalId);
+          intervalId = setInterval(stepTick, (60 / bpm / 4) * 1000);
         }
       }
 
-      function togglePause() {
-        if (gameOver || startMenu.style.display === 'flex') return;
-        isPaused = !isPaused;
-        pauseBtn.textContent = isPaused ? '▶ Resume' : '⏸ Pause';
-        if (!isPaused) requestAnimationFrame(gameLoop);
+      function clearAll() {
+        grid = instruments.map(() => Array(16).fill(false));
+        buildGridUI();
       }
 
-      function update() {
-        const config = DIFF_SETTINGS[currentDiff];
-
-        // Smooth drag glide
-        player.x += (player.targetX - player.x) * 0.35;
-        player.y += (player.targetY - player.y) * 0.35;
-
-        // Auto Hero Rapid Blaster
-        if (player.fireCooldown > 0) player.fireCooldown--;
-        if (player.fireCooldown <= 0) {
-          bullets.push({ x: player.x - 8, y: player.y - 12 });
-          bullets.push({ x: player.x + 8, y: player.y - 12 });
-          playChiptune(780, 'sawtooth', 0.05, 0.03);
-          player.fireCooldown = 11;
+      function loadPreset(type) {
+        clearAll();
+        if (type === 'house') {
+          // Four on the floor Kick
+          [0, 4, 8, 12].forEach(s => grid[0][s] = true);
+          // Snare/Clap on 4, 12
+          [4, 12].forEach(s => grid[3][s] = true);
+          // Offbeat Hi-Hats
+          [2, 6, 10, 14].forEach(s => grid[2][s] = true);
+          // Bass groove
+          [0, 3, 6, 10, 14].forEach(s => grid[4][s] = true);
+          updateBpm(124);
+        } else if (type === 'trap') {
+          // Trap Kick pattern
+          [0, 7, 10].forEach(s => grid[0][s] = true);
+          // Snare on beat 8
+          [8].forEach(s => grid[1][s] = true);
+          // Fast rolling hats
+          [0, 2, 4, 6, 8, 10, 12, 13, 14, 15].forEach(s => grid[2][s] = true);
+          // Laser blip accent
+          [14].forEach(s => grid[5][s] = true);
+          updateBpm(140);
         }
-
-        // Hero Bullets
-        for (let i = bullets.length - 1; i >= 0; i--) {
-          bullets[i].y -= 9;
-          if (bullets[i].y < -20) bullets.splice(i, 1);
-        }
-
-        // Enemies
-        frame++;
-        if (frame % config.spawnRate === 0) spawnEnemy();
-
-        for (let i = enemies.length - 1; i >= 0; i--) {
-          const e = enemies[i];
-          e.y += e.speed;
-
-          // Targeted enemy firing (aiming directly at player coordinates)
-          e.fireTimer--;
-          if (e.fireTimer <= 0) {
-            const angle = Math.atan2(player.y - (e.y + e.size), player.x - (e.x + e.size / 2));
-            enemyLasers.push({
-              x: e.x + e.size / 2,
-              y: e.y + e.size,
-              vx: Math.cos(angle) * config.bulletSpeed,
-              vy: Math.sin(angle) * config.bulletSpeed
-            });
-            playChiptune(380, 'sine', 0.08, 0.04);
-            e.fireTimer = config.fireRate + Math.floor(Math.random() * 20);
-          }
-
-          // Check Hero laser hitting Baddo
-          for (let j = bullets.length - 1; j >= 0; j--) {
-            const b = bullets[j];
-            if (b.x > e.x && b.x < e.x + e.size && b.y > e.y && b.y < e.y + e.size) {
-              addExplosion(e.x + e.size / 2, e.y + e.size / 2, '#38bdf8');
-              enemies.splice(i, 1);
-              bullets.splice(j, 1);
-              score += 10;
-              scoreText.textContent = score;
-              break;
-            }
-          }
-
-          // Direct collision with player
-          if (
-            e &&
-            player.x + player.radius > e.x &&
-            player.x - player.radius < e.x + e.size &&
-            player.y + player.radius > e.y &&
-            player.y - player.radius < e.y + e.size
-          ) {
-            takeDamage();
-            enemies.splice(i, 1);
-          }
-
-          if (e && e.y > canvas.height + 30) enemies.splice(i, 1);
-        }
-
-        // Enemy Targeted Lasers
-        for (let i = enemyLasers.length - 1; i >= 0; i--) {
-          const l = enemyLasers[i];
-          l.x += l.vx;
-          l.y += l.vy;
-
-          // Check hit against player
-          const dist = Math.hypot(l.x - player.x, l.y - player.y);
-          if (dist < player.radius + 4) {
-            takeDamage();
-            enemyLasers.splice(i, 1);
-            continue;
-          }
-
-          // Remove offscreen
-          if (l.y > canvas.height + 20 || l.x < -20 || l.x > canvas.width + 20) {
-            enemyLasers.splice(i, 1);
-          }
-        }
-
-        // Particles
-        for (let i = sparks.length - 1; i >= 0; i--) {
-          sparks[i].x += sparks[i].vx;
-          sparks[i].y += sparks[i].vy;
-          sparks[i].life--;
-          if (sparks[i].life <= 0) sparks.splice(i, 1);
-        }
-
-        if (damageFlash > 0) damageFlash--;
+        buildGridUI();
       }
 
-      function takeDamage() {
-        lives--;
-        damageFlash = 8;
-        playChiptune(80, 'sawtooth', 0.25, 0.2);
-        updateLivesDisplay();
-        if (lives <= 0) {
-          gameOver = true;
-        }
-      }
-
-      function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Flash screen red when hit
-        if (damageFlash > 0) {
-          ctx.fillStyle = 'rgba(239, 68, 68, 0.3)';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-
-        // Hero Bullets
-        ctx.fillStyle = '#38bdf8';
-        bullets.forEach((b) => ctx.fillRect(b.x - 2, b.y, 4, 10));
-
-        // Enemy Targeted Lasers
-        ctx.fillStyle = '#ef4444';
-        enemyLasers.forEach((l) => {
-          ctx.beginPath();
-          ctx.arc(l.x, l.y, 4, 0, Math.PI * 2);
-          ctx.fill();
-        });
-
-        // Player Ship
-        ctx.save();
-        ctx.translate(player.x, player.y);
-        ctx.fillStyle = '#0284c7';
-        ctx.beginPath();
-        ctx.moveTo(0, -16);
-        ctx.lineTo(16, 12);
-        ctx.lineTo(-16, 12);
-        ctx.closePath();
-        ctx.fill();
-        // Cockpit
-        ctx.fillStyle = '#38bdf8';
-        ctx.beginPath();
-        ctx.arc(0, 0, 5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-
-        // Baddos
-        enemies.forEach((e) => {
-          ctx.fillStyle = '#dc2626';
-          ctx.fillRect(e.x, e.y, e.size, e.size);
-          // Bandit mask & angry eyes
-          ctx.fillStyle = '#0f172a';
-          ctx.fillRect(e.x + 4, e.y + 6, e.size - 8, 7);
-          ctx.fillStyle = '#facc15';
-          ctx.fillRect(e.x + 6, e.y + 8, 5, 3);
-          ctx.fillRect(e.x + e.size - 11, e.y + 8, 5, 3);
-        });
-
-        // Sparks
-        sparks.forEach((s) => {
-          ctx.fillStyle = s.color;
-          ctx.fillRect(s.x, s.y, 2, 2);
-        });
-
-        if (gameOver) {
-          ctx.fillStyle = 'rgba(3, 7, 18, 0.88)';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-          ctx.fillStyle = '#ef4444';
-          ctx.font = 'bold 24px system-ui';
-          ctx.textAlign = 'center';
-          ctx.fillText('MISSION FAILED', canvas.width / 2, 210);
-
-          ctx.fillStyle = '#f8fafc';
-          ctx.font = '16px system-ui';
-          ctx.fillText('Score: ' + score, canvas.width / 2, 245);
-
-          ctx.fillStyle = '#38bdf8';
-          ctx.font = '14px system-ui';
-          ctx.fillText('Tap screen to restart', canvas.width / 2, 280);
-        }
-      }
-
-      canvas.addEventListener('click', () => {
-        if (gameOver) resetGame();
-      });
-
-      function gameLoop() {
-        if (!gameOver && !isPaused && startMenu.style.display !== 'flex') {
-          update();
-          draw();
-          requestAnimationFrame(gameLoop);
-        }
-      }
-
-      updateLivesDisplay();
+      // Initialize with Trap Preset
+      loadPreset('trap');
     </script>
   </body>
 </html>
