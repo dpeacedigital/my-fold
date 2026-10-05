@@ -2,15 +2,21 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0" />
-    <title>Baddo Showdown Arcade</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Baddo Showdown: Cyber Blast</title>
     <style>
-      * { box-sizing: border-box; touch-action: none; -webkit-touch-callout: none; user-select: none; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        touch-action: none;
+        -webkit-touch-callout: none;
+        user-select: none;
+      }
       body {
         font-family: system-ui, -apple-system, sans-serif;
-        background: #020617;
+        background-color: #030712;
         color: #f8fafc;
-        margin: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -18,39 +24,38 @@
         min-height: 100vh;
         overflow: hidden;
       }
-      .game-wrapper {
+      .game-container {
         display: flex;
         flex-direction: column;
         align-items: center;
         width: 100%;
-        max-width: 420px;
-        padding: 10px;
+        max-width: 380px;
+        padding: 8px;
+        position: relative;
       }
-      .top-hud {
+      .hud {
         display: flex;
         justify-content: space-between;
         align-items: center;
         width: 100%;
         margin-bottom: 8px;
         font-weight: 800;
-        font-size: 1rem;
+        font-size: 0.95rem;
       }
       .hud-score { color: #38bdf8; }
-      .hud-best { color: #f59e0b; }
-      .hud-health { color: #ef4444; }
+      .hud-lives { color: #ef4444; letter-spacing: 2px; }
+      .hud-diff { color: #f59e0b; text-transform: uppercase; font-size: 0.8rem; }
       canvas {
-        background: #0b1120;
-        border: 2px solid #38bdf8;
+        background: #090d16;
+        border: 2px solid #1e293b;
         border-radius: 12px;
-        box-shadow: 0 0 25px rgba(56, 189, 248, 0.25);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
         display: block;
-        cursor: grab;
       }
-      canvas:active { cursor: grabbing; }
-      .bar-controls {
+      .action-bar {
         display: flex;
         gap: 8px;
-        margin-top: 10px;
+        margin-top: 8px;
         width: 100%;
       }
       .btn {
@@ -65,279 +70,347 @@
         color: #f8fafc;
       }
       .btn:hover { background: #334155; }
-      .btn-music-on { color: #4ade80; border-color: #22c55e; }
-      .hint {
-        font-size: 0.75rem;
-        color: #64748b;
-        margin-top: 6px;
+      .btn-active { color: #4ade80; border-color: #22c55e; }
+
+      /* Difficulty Overlay Menu */
+      .menu-overlay {
+        position: absolute;
+        top: 40px;
+        left: 8px;
+        right: 8px;
+        bottom: 50px;
+        background: rgba(3, 7, 18, 0.92);
+        border: 2px solid #38bdf8;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        z-index: 10;
+      }
+      .menu-overlay h1 {
+        font-size: 1.6rem;
+        color: #38bdf8;
+        margin-bottom: 6px;
+      }
+      .menu-overlay p {
+        color: #94a3b8;
+        font-size: 0.85rem;
+        margin-bottom: 20px;
         text-align: center;
       }
+      .diff-options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+      }
+      .diff-btn {
+        padding: 12px;
+        font-size: 1rem;
+        font-weight: 800;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+      }
+      .diff-easy { background: #10b981; color: #022c22; }
+      .diff-med { background: #f59e0b; color: #451a03; }
+      .diff-hard { background: #ef4444; color: #450a0a; }
+      .diff-btn:hover { opacity: 0.9; }
     </style>
   </head>
   <body>
-    <div class="game-wrapper">
-      <div class="top-hud">
+    <div class="game-container">
+      <div class="hud">
         <span>Score: <span id="scoreText" class="hud-score">0</span></span>
-        <span>HP: <span id="hpText" class="hud-health">♥♥♥</span></span>
-        <span>Best: <span id="bestText" class="hud-best">0</span></span>
+        <span id="livesText" class="hud-lives">❤️❤️❤️</span>
+        <span id="diffBadge" class="hud-diff">Normal</span>
       </div>
 
-      <canvas id="gameCanvas" width="360" height="520"></canvas>
+      <canvas id="gameCanvas" width="340" height="480"></canvas>
 
-      <div class="bar-controls">
-        <button class="btn" id="musicBtn" onclick="toggleMusic()">🎵 Music: OFF</button>
+      <!-- Main Difficulty Selector Modal -->
+      <div id="startMenu" class="menu-overlay">
+        <h1>👾 BADDO BLAST</h1>
+        <p>Choose combat intensity to begin:</p>
+        <div class="diff-options">
+          <button class="diff-btn diff-easy" onclick="selectDifficulty('easy')">EASY (Slower Baddos)</button>
+          <button class="diff-btn diff-med" onclick="selectDifficulty('medium')">MEDIUM (Classic)</button>
+          <button class="diff-btn diff-hard" onclick="selectDifficulty('hard')">HARD (Fast & Heavy Fire)</button>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <button class="btn" id="musicToggle" onclick="toggleAudio()">🎵 Sound: OFF</button>
         <button class="btn" id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
-        <button class="btn" onclick="restartGame()">🔄 Restart</button>
+        <button class="btn" onclick="openMenu()">⚙ Levels</button>
       </div>
-
-      <div class="hint">📱 Drag anywhere to move & auto-fire | 💻 Mouse drag or A/D keys</div>
     </div>
-
-    <!-- Background Arcade Soundtrack URL -->
-    <audio id="bgm" loop preload="auto">
-      <source src="https://cdn.freesound.org/previews/563/563994_11861866-lq.mp3" type="audio/mp3">
-    </audio>
 
     <script>
       const canvas = document.getElementById('gameCanvas');
       const ctx = canvas.getContext('2d');
       const scoreText = document.getElementById('scoreText');
-      const hpText = document.getElementById('hpText');
-      const bestText = document.getElementById('bestText');
-      const musicBtn = document.getElementById('musicBtn');
+      const livesText = document.getElementById('livesText');
+      const diffBadge = document.getElementById('diffBadge');
+      const startMenu = document.getElementById('startMenu');
+      const musicToggle = document.getElementById('musicToggle');
       const pauseBtn = document.getElementById('pauseBtn');
-      const bgm = document.getElementById('bgm');
-      bgm.volume = 0.35;
 
-      let bestScore = localStorage.getItem('baddo_showdown_best') || 0;
-      bestText.textContent = bestScore;
-
+      let currentDiff = 'medium';
       let score = 0;
-      let hp = 3;
+      let lives = 3;
       let gameOver = false;
       let isPaused = false;
-      let isMusicPlaying = false;
       let frame = 0;
+      let damageFlash = 0;
 
-      // Player Character
+      // In-Memory Web Audio Engine
+      let audioCtx = null;
+      let soundEnabled = false;
+      let bgmTimer = null;
+
+      function initAudio() {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+      }
+
+      function playChiptune(freq, type, duration, vol = 0.08) {
+        if (!soundEnabled || !audioCtx) return;
+        try {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+          gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + duration);
+        } catch (e) {}
+      }
+
+      // Procedural 8-bit Music Track
+      const bgmNotes = [261, 329, 392, 523, 440, 349, 392, 493, 261, 392, 329, 523];
+      let bgmIndex = 0;
+      function startBgmLoop() {
+        if (bgmTimer) clearInterval(bgmTimer);
+        bgmTimer = setInterval(() => {
+          if (soundEnabled && !isPaused && !gameOver && startMenu.style.display === 'none') {
+            playChiptune(bgmNotes[bgmIndex % bgmNotes.length], 'triangle', 0.2, 0.05);
+            if (bgmIndex % 2 === 0) playChiptune(130, 'square', 0.1, 0.03); // bass beat
+            bgmIndex++;
+          }
+        }, 180);
+      }
+
+      function toggleAudio() {
+        initAudio();
+        soundEnabled = !soundEnabled;
+        if (soundEnabled) {
+          musicToggle.textContent = '🎵 Sound: ON';
+          musicToggle.classList.add('btn-active');
+          startBgmLoop();
+        } else {
+          musicToggle.textContent = '🎵 Sound: OFF';
+          musicToggle.classList.remove('btn-active');
+          if (bgmTimer) clearInterval(bgmTimer);
+        }
+      }
+
+      // Difficulty Settings
+      const DIFF_SETTINGS = {
+        easy: { spawnRate: 65, enemySpeed: 1.5, bulletSpeed: 3.5, fireRate: 90 },
+        medium: { spawnRate: 45, enemySpeed: 2.2, bulletSpeed: 5.0, fireRate: 65 },
+        hard: { spawnRate: 30, enemySpeed: 3.0, bulletSpeed: 6.5, fireRate: 45 }
+      };
+
+      // Player State
       let player = {
-        x: 180,
-        y: 450,
-        radius: 20,
-        targetX: 180,
-        targetY: 450,
-        isFiring: false,
-        shootCooldown: 0
+        x: 170,
+        y: 420,
+        radius: 18,
+        targetX: 170,
+        targetY: 420,
+        fireCooldown: 0
       };
 
       let bullets = [];
-      let enemyBullets = [];
+      let enemyLasers = [];
       let enemies = [];
-      let particles = [];
+      let sparks = [];
 
-      // Audio Toggle
-      function toggleMusic() {
-        if (!isMusicPlaying) {
-          bgm.play().then(() => {
-            isMusicPlaying = true;
-            musicBtn.textContent = '🎵 Music: ON';
-            musicBtn.classList.add('btn-music-on');
-          }).catch(() => {});
-        } else {
-          bgm.pause();
-          isMusicPlaying = false;
-          musicBtn.textContent = '🎵 Music: OFF';
-          musicBtn.classList.remove('btn-music-on');
-        }
-      }
-
-      // Drag Controls: Touch & Mouse
-      function setPointerPosition(clientX, clientY) {
+      // Mobile Touch Handler (Strictly Prevent Screen Drag)
+      function updatePointer(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        player.targetX = (clientX - rect.left) * scaleX;
-        player.targetY = (clientY - rect.top) * scaleY;
+        const factorX = canvas.width / rect.width;
+        const factorY = canvas.height / rect.height;
+        player.targetX = (clientX - rect.left) * factorX;
+        player.targetY = (clientY - rect.top) * factorY;
 
-        // Boundaries
+        // Keep inside bounds
         player.targetX = Math.max(player.radius, Math.min(canvas.width - player.radius, player.targetX));
-        player.targetY = Math.max(player.radius + 60, Math.min(canvas.height - player.radius, player.targetY));
+        player.targetY = Math.max(player.radius + 40, Math.min(canvas.height - player.radius, player.targetY));
       }
 
-      let isDragging = false;
+      let isTouching = false;
+      canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        isTouching = true;
+        initAudio();
+        updatePointer(e.touches[0].clientX, e.touches[0].clientY);
+      }, { passive: false });
 
-      canvas.addEventListener('pointerdown', (e) => {
-        isDragging = true;
-        player.isFiring = true;
-        setPointerPosition(e.clientX, e.clientY);
-        if (gameOver) restartGame();
-      });
-
-      window.addEventListener('pointermove', (e) => {
-        if (isDragging) {
-          setPointerPosition(e.clientX, e.clientY);
+      canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (isTouching) {
+          updatePointer(e.touches[0].clientX, e.touches[0].clientY);
         }
-      });
+      }, { passive: false });
 
-      window.addEventListener('pointerup', () => {
-        isDragging = false;
-        player.isFiring = false;
-      });
+      canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        isTouching = false;
+      }, { passive: false });
 
-      // Keyboard Controls
-      let keys = {};
-      window.addEventListener('keydown', (e) => {
-        keys[e.key] = true;
-        if (e.key === ' ' || e.key === 'Spacebar') player.isFiring = true;
-        if (e.key === 'p' || e.key === 'P') togglePause();
-        if (e.key === 'r' || e.key === 'R') restartGame();
-        if (gameOver && (e.key === 'Enter' || e.key === ' ')) restartGame();
+      // Mouse drag fallback
+      let isMouseDown = false;
+      canvas.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        initAudio();
+        updatePointer(e.clientX, e.clientY);
       });
-      window.addEventListener('keyup', (e) => {
-        keys[e.key] = false;
-        if (e.key === ' ' || e.key === 'Spacebar') player.isFiring = false;
+      window.addEventListener('mousemove', (e) => {
+        if (isMouseDown) updatePointer(e.clientX, e.clientY);
       });
+      window.addEventListener('mouseup', () => { isMouseDown = false; });
 
-      function updateHealthUI() {
-        hpText.textContent = '♥'.repeat(Math.max(0, hp));
+      function selectDifficulty(level) {
+        initAudio();
+        currentDiff = level;
+        diffBadge.textContent = level;
+        startMenu.style.display = 'none';
+        resetGame();
+      }
+
+      function openMenu() {
+        startMenu.style.display = 'flex';
+        isPaused = true;
+      }
+
+      function resetGame() {
+        score = 0;
+        lives = 3;
+        gameOver = false;
+        isPaused = false;
+        bullets = [];
+        enemyLasers = [];
+        enemies = [];
+        sparks = [];
+        player.x = 170;
+        player.y = 420;
+        player.targetX = 170;
+        player.targetY = 420;
+        scoreText.textContent = score;
+        updateLivesDisplay();
+        requestAnimationFrame(gameLoop);
+      }
+
+      function updateLivesDisplay() {
+        livesText.textContent = '❤️'.repeat(Math.max(0, lives));
       }
 
       function spawnEnemy() {
-        const size = 34;
+        const config = DIFF_SETTINGS[currentDiff];
+        const size = 30;
         const x = Math.random() * (canvas.width - size - 20) + 10;
-        const speed = 1.4 + Math.min(score * 0.02, 3);
         enemies.push({
           x,
           y: -size,
           size,
-          speed,
-          shootCooldown: Math.floor(Math.random() * 60) + 40,
-          wobbleOffset: Math.random() * Math.PI * 2
+          speed: config.enemySpeed + Math.random() * 0.5,
+          fireTimer: Math.floor(Math.random() * config.fireRate) + 20
         });
       }
 
-      function createExplosion(x, y, color) {
-        for (let i = 0; i < 12; i++) {
-          particles.push({
-            x,
-            y,
-            vx: (Math.random() - 0.5) * 6,
-            vy: (Math.random() - 0.5) * 6,
-            size: Math.random() * 3 + 2,
-            life: 25,
+      function addExplosion(x, y, color) {
+        playChiptune(120, 'square', 0.15, 0.1);
+        for (let i = 0; i < 10; i++) {
+          sparks.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 5,
+            vy: (Math.random() - 0.5) * 5,
+            life: 20,
             color
           });
         }
       }
 
       function togglePause() {
-        if (gameOver) return;
+        if (gameOver || startMenu.style.display === 'flex') return;
         isPaused = !isPaused;
-        if (isPaused) {
-          pauseBtn.textContent = '▶ Resume';
-          if (isMusicPlaying) bgm.pause();
-          drawPauseScreen();
-        } else {
-          pauseBtn.textContent = '⏸ Pause';
-          if (isMusicPlaying) bgm.play().catch(() => {});
-          requestAnimationFrame(gameLoop);
-        }
-      }
-
-      function restartGame() {
-        score = 0;
-        hp = 3;
-        player.x = 180;
-        player.y = 450;
-        player.targetX = 180;
-        player.targetY = 450;
-        bullets = [];
-        enemyBullets = [];
-        enemies = [];
-        particles = [];
-        gameOver = false;
-        isPaused = false;
-        scoreText.textContent = score;
-        updateHealthUI();
-        pauseBtn.textContent = '⏸ Pause';
-        requestAnimationFrame(gameLoop);
+        pauseBtn.textContent = isPaused ? '▶ Resume' : '⏸ Pause';
+        if (!isPaused) requestAnimationFrame(gameLoop);
       }
 
       function update() {
-        // Smooth position glide to touch pointer
-        player.x += (player.targetX - player.x) * 0.25;
-        player.y += (player.targetY - player.y) * 0.25;
+        const config = DIFF_SETTINGS[currentDiff];
 
-        // Keyboard movement overrides
-        if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
-          player.x = Math.max(player.radius, player.x - 6);
-          player.targetX = player.x;
-        }
-        if (keys['ArrowRight'] || keys['d'] || keys['D']) {
-          player.x = Math.min(canvas.width - player.radius, player.x + 6);
-          player.targetX = player.x;
-        }
+        // Smooth drag glide
+        player.x += (player.targetX - player.x) * 0.35;
+        player.y += (player.targetY - player.y) * 0.35;
 
-        // Auto/Manual firing
-        if (player.shootCooldown > 0) player.shootCooldown--;
-        if (player.isFiring && player.shootCooldown === 0) {
-          bullets.push({ x: player.x - 10, y: player.y - 15, vy: -10, color: '#38bdf8' });
-          bullets.push({ x: player.x + 10, y: player.y - 15, vy: -10, color: '#38bdf8' });
-          player.shootCooldown = 9;
+        // Auto Hero Rapid Blaster
+        if (player.fireCooldown > 0) player.fireCooldown--;
+        if (player.fireCooldown <= 0) {
+          bullets.push({ x: player.x - 8, y: player.y - 12 });
+          bullets.push({ x: player.x + 8, y: player.y - 12 });
+          playChiptune(780, 'sawtooth', 0.05, 0.03);
+          player.fireCooldown = 11;
         }
 
-        // Update hero bullets
+        // Hero Bullets
         for (let i = bullets.length - 1; i >= 0; i--) {
-          bullets[i].y += bullets[i].vy;
+          bullets[i].y -= 9;
           if (bullets[i].y < -20) bullets.splice(i, 1);
         }
 
-        // Update enemy lasers
-        for (let i = enemyBullets.length - 1; i >= 0; i--) {
-          const eb = enemyBullets[i];
-          eb.y += eb.vy;
-
-          // Check hit against player
-          const dist = Math.hypot(eb.x - player.x, eb.y - player.y);
-          if (dist < player.radius + 4) {
-            createExplosion(player.x, player.y, '#ef4444');
-            enemyBullets.splice(i, 1);
-            hp--;
-            updateHealthUI();
-            if (hp <= 0) triggerGameOver();
-            continue;
-          }
-
-          if (eb.y > canvas.height + 20) enemyBullets.splice(i, 1);
-        }
-
-        // Spawn Baddos
+        // Enemies
         frame++;
-        if (frame % Math.max(28, 65 - Math.floor(score * 0.3)) === 0) {
-          spawnEnemy();
-        }
+        if (frame % config.spawnRate === 0) spawnEnemy();
 
-        // Update Baddos
         for (let i = enemies.length - 1; i >= 0; i--) {
           const e = enemies[i];
           e.y += e.speed;
-          e.x += Math.sin(frame * 0.05 + e.wobbleOffset) * 1.5;
 
-          // Baddo shoots back
-          e.shootCooldown--;
-          if (e.shootCooldown <= 0) {
-            enemyBullets.push({ x: e.x + e.size / 2, y: e.y + e.size, vy: 4.5, color: '#f87171' });
-            e.shootCooldown = Math.floor(Math.random() * 80) + 60;
+          // Targeted enemy firing (aiming directly at player coordinates)
+          e.fireTimer--;
+          if (e.fireTimer <= 0) {
+            const angle = Math.atan2(player.y - (e.y + e.size), player.x - (e.x + e.size / 2));
+            enemyLasers.push({
+              x: e.x + e.size / 2,
+              y: e.y + e.size,
+              vx: Math.cos(angle) * config.bulletSpeed,
+              vy: Math.sin(angle) * config.bulletSpeed
+            });
+            playChiptune(380, 'sine', 0.08, 0.04);
+            e.fireTimer = config.fireRate + Math.floor(Math.random() * 20);
           }
 
-          // Check player laser hit
+          // Check Hero laser hitting Baddo
           for (let j = bullets.length - 1; j >= 0; j--) {
             const b = bullets[j];
             if (b.x > e.x && b.x < e.x + e.size && b.y > e.y && b.y < e.y + e.size) {
-              createExplosion(e.x + e.size / 2, e.y + e.size / 2, '#38bdf8');
+              addExplosion(e.x + e.size / 2, e.y + e.size / 2, '#38bdf8');
               enemies.splice(i, 1);
               bullets.splice(j, 1);
-              score += 15;
+              score += 10;
               scoreText.textContent = score;
               break;
             }
@@ -351,169 +424,142 @@
             player.y + player.radius > e.y &&
             player.y - player.radius < e.y + e.size
           ) {
-            createExplosion(player.x, player.y, '#ef4444');
+            takeDamage();
             enemies.splice(i, 1);
-            hp--;
-            updateHealthUI();
-            if (hp <= 0) triggerGameOver();
           }
 
-          if (e && e.y > canvas.height + 40) enemies.splice(i, 1);
+          if (e && e.y > canvas.height + 30) enemies.splice(i, 1);
+        }
+
+        // Enemy Targeted Lasers
+        for (let i = enemyLasers.length - 1; i >= 0; i--) {
+          const l = enemyLasers[i];
+          l.x += l.vx;
+          l.y += l.vy;
+
+          // Check hit against player
+          const dist = Math.hypot(l.x - player.x, l.y - player.y);
+          if (dist < player.radius + 4) {
+            takeDamage();
+            enemyLasers.splice(i, 1);
+            continue;
+          }
+
+          // Remove offscreen
+          if (l.y > canvas.height + 20 || l.x < -20 || l.x > canvas.width + 20) {
+            enemyLasers.splice(i, 1);
+          }
         }
 
         // Particles
-        for (let i = particles.length - 1; i >= 0; i--) {
-          const p = particles[i];
-          p.x += p.vx;
-          p.y += p.vy;
-          p.life--;
-          if (p.life <= 0) particles.splice(i, 1);
+        for (let i = sparks.length - 1; i >= 0; i--) {
+          sparks[i].x += sparks[i].vx;
+          sparks[i].y += sparks[i].vy;
+          sparks[i].life--;
+          if (sparks[i].life <= 0) sparks.splice(i, 1);
         }
+
+        if (damageFlash > 0) damageFlash--;
       }
 
-      function triggerGameOver() {
-        gameOver = true;
-        if (score > bestScore) {
-          bestScore = score;
-          localStorage.setItem('baddo_showdown_best', bestScore);
-          bestText.textContent = bestScore;
+      function takeDamage() {
+        lives--;
+        damageFlash = 8;
+        playChiptune(80, 'sawtooth', 0.25, 0.2);
+        updateLivesDisplay();
+        if (lives <= 0) {
+          gameOver = true;
         }
       }
 
       function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Starfield backdrop
-        ctx.fillStyle = '#1e293b';
-        for (let i = 0; i < 20; i++) {
-          const sx = (i * 37 + frame) % canvas.width;
-          const sy = (i * 53 + frame * 2) % canvas.height;
-          ctx.fillRect(sx, sy, 2, 2);
+        // Flash screen red when hit
+        if (damageFlash > 0) {
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.3)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
-        // Player Bullets
+        // Hero Bullets
         ctx.fillStyle = '#38bdf8';
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = '#38bdf8';
-        bullets.forEach((b) => ctx.fillRect(b.x - 2, b.y, 4, 12));
+        bullets.forEach((b) => ctx.fillRect(b.x - 2, b.y, 4, 10));
 
-        // Enemy Bullets
-        ctx.fillStyle = '#f87171';
-        ctx.shadowColor = '#ef4444';
-        enemyBullets.forEach((eb) => {
+        // Enemy Targeted Lasers
+        ctx.fillStyle = '#ef4444';
+        enemyLasers.forEach((l) => {
           ctx.beginPath();
-          ctx.arc(eb.x, eb.y, 4, 0, Math.PI * 2);
+          ctx.arc(l.x, l.y, 4, 0, Math.PI * 2);
           ctx.fill();
         });
-        ctx.shadowBlur = 0;
 
-        // Draw Player Character (Armored Cyber Hero)
+        // Player Ship
         ctx.save();
         ctx.translate(player.x, player.y);
-
-        // Thruster flame
-        ctx.fillStyle = '#f59e0b';
-        ctx.beginPath();
-        ctx.moveTo(-6, 16);
-        ctx.lineTo(0, 26 + (frame % 4) * 2);
-        ctx.lineTo(6, 16);
-        ctx.fill();
-
-        // Ship hull
         ctx.fillStyle = '#0284c7';
         ctx.beginPath();
-        ctx.moveTo(0, -18);
-        ctx.lineTo(18, 14);
-        ctx.lineTo(-18, 14);
+        ctx.moveTo(0, -16);
+        ctx.lineTo(16, 12);
+        ctx.lineTo(-16, 12);
         ctx.closePath();
         ctx.fill();
-
-        // Cockpit visor
+        // Cockpit
         ctx.fillStyle = '#38bdf8';
         ctx.beginPath();
-        ctx.arc(0, 0, 7, 0, Math.PI * 2);
+        ctx.arc(0, 0, 5, 0, Math.PI * 2);
         ctx.fill();
-
-        // Twin cannons
-        ctx.fillStyle = '#94a3b8';
-        ctx.fillRect(-14, -6, 4, 16);
-        ctx.fillRect(10, -6, 4, 16);
         ctx.restore();
 
-        // Draw Baddo Characters (Visored Bandit Invaders)
+        // Baddos
         enemies.forEach((e) => {
-          ctx.save();
-          ctx.translate(e.x, e.y);
-
-          // Helmet / Skull
           ctx.fillStyle = '#dc2626';
-          ctx.beginPath();
-          ctx.roundRect(0, 0, e.size, e.size - 4, 8);
-          ctx.fill();
-
-          // Cyber Eyepiece / Visor
+          ctx.fillRect(e.x, e.y, e.size, e.size);
+          // Bandit mask & angry eyes
           ctx.fillStyle = '#0f172a';
-          ctx.fillRect(4, 8, e.size - 8, 8);
+          ctx.fillRect(e.x + 4, e.y + 6, e.size - 8, 7);
           ctx.fillStyle = '#facc15';
-          ctx.fillRect(8, 10, 8, 4);
-
-          // Jaw Guard
-          ctx.fillStyle = '#475569';
-          ctx.fillRect(6, 20, e.size - 12, 6);
-
-          ctx.restore();
+          ctx.fillRect(e.x + 6, e.y + 8, 5, 3);
+          ctx.fillRect(e.x + e.size - 11, e.y + 8, 5, 3);
         });
 
-        // Sparks & Explosions
-        particles.forEach((p) => {
-          ctx.fillStyle = p.color;
-          ctx.fillRect(p.x, p.y, p.size, p.size);
+        // Sparks
+        sparks.forEach((s) => {
+          ctx.fillStyle = s.color;
+          ctx.fillRect(s.x, s.y, 2, 2);
         });
 
-        // Game Over Screen
         if (gameOver) {
-          ctx.fillStyle = 'rgba(2, 6, 23, 0.88)';
+          ctx.fillStyle = 'rgba(3, 7, 18, 0.88)';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
 
           ctx.fillStyle = '#ef4444';
-          ctx.font = 'bold 28px system-ui';
+          ctx.font = 'bold 24px system-ui';
           ctx.textAlign = 'center';
           ctx.fillText('MISSION FAILED', canvas.width / 2, 210);
 
           ctx.fillStyle = '#f8fafc';
           ctx.font = '16px system-ui';
-          ctx.fillText('Baddos Defeated: ' + score, canvas.width / 2, 248);
+          ctx.fillText('Score: ' + score, canvas.width / 2, 245);
 
           ctx.fillStyle = '#38bdf8';
           ctx.font = '14px system-ui';
-          ctx.fillText('Tap screen or click Restart', canvas.width / 2, 285);
+          ctx.fillText('Tap screen to restart', canvas.width / 2, 280);
         }
       }
 
-      function drawPauseScreen() {
-        ctx.fillStyle = 'rgba(2, 6, 23, 0.75)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.fillStyle = '#38bdf8';
-        ctx.font = 'bold 28px system-ui';
-        ctx.textAlign = 'center';
-        ctx.fillText('PAUSED', canvas.width / 2, 230);
-
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '14px system-ui';
-        ctx.fillText('Tap Resume or press P to continue', canvas.width / 2, 260);
-      }
+      canvas.addEventListener('click', () => {
+        if (gameOver) resetGame();
+      });
 
       function gameLoop() {
-        if (!gameOver && !isPaused) {
+        if (!gameOver && !isPaused && startMenu.style.display !== 'flex') {
           update();
           draw();
           requestAnimationFrame(gameLoop);
         }
       }
 
-      updateHealthUI();
-      requestAnimationFrame(gameLoop);
+      updateLivesDisplay();
     </script>
   </body>
 </html>
