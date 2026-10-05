@@ -3,18 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>SoundPulse - Beat Sequencer</title>
+    <title>VibeStudio Photo Editor</title>
     <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        touch-action: manipulation;
-        user-select: none;
-      }
+      * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
       body {
         font-family: system-ui, -apple-system, sans-serif;
-        background-color: #0b0f19;
+        background-color: #030712;
         color: #f8fafc;
         display: flex;
         flex-direction: column;
@@ -22,406 +16,328 @@
         padding: 16px 12px;
         min-height: 100vh;
       }
-      .app-wrapper {
+      .app-shell {
         width: 100%;
-        max-width: 520px;
+        max-width: 440px;
         display: flex;
         flex-direction: column;
-        gap: 14px;
+        gap: 12px;
       }
-      .header {
+      header {
         display: flex;
         justify-content: space-between;
         align-items: center;
       }
-      h1 {
-        font-size: 1.4rem;
-        color: #38bdf8;
-      }
-      .controls-bar {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        background: #151d30;
-        padding: 12px;
+      h1 { font-size: 1.35rem; color: #38bdf8; }
+      .canvas-viewport {
+        width: 100%;
+        height: 340px;
+        background: #0f172a;
+        border: 2px dashed #334155;
         border-radius: 12px;
-        border: 1px solid #1e293b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
       }
-      .btn-play {
-        background: #10b981;
-        color: #022c22;
-        border: none;
-        padding: 10px 18px;
+      canvas {
+        max-width: 100%;
+        max-height: 100%;
         border-radius: 8px;
-        font-size: 1rem;
-        font-weight: 800;
-        cursor: pointer;
+        display: block;
       }
-      .btn-play.playing {
-        background: #ef4444;
-        color: white;
-      }
-      .tempo-wrap {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        gap: 4px;
-      }
-      .tempo-label {
-        font-size: 0.75rem;
+      .upload-prompt {
+        text-align: center;
         color: #94a3b8;
+        font-size: 0.9rem;
+        cursor: pointer;
+        padding: 20px;
+      }
+      .file-input { display: none; }
+      .filter-scroll {
         display: flex;
-        justify-content: space-between;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
       }
-      input[type="range"] {
-        accent-color: #38bdf8;
-      }
-      .preset-bar {
-        display: flex;
-        gap: 6px;
-      }
-      .btn-preset {
-        flex: 1;
+      .filter-btn {
         background: #1e293b;
         color: #94a3b8;
         border: 1px solid #334155;
-        padding: 8px 0;
-        font-size: 0.75rem;
+        padding: 8px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
         font-weight: 700;
-        border-radius: 6px;
+        white-space: nowrap;
         cursor: pointer;
       }
-      .btn-preset:active {
-        background: #334155;
-        color: white;
+      .filter-btn.active {
+        background: #0284c7;
+        color: #ffffff;
+        border-color: #38bdf8;
       }
-
-      /* Sequencer Grid */
-      .sequencer {
-        background: #151d30;
+      .controls-card {
+        background: #0f172a;
         border: 1px solid #1e293b;
         border-radius: 12px;
-        padding: 12px;
+        padding: 14px;
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        overflow-x: auto;
+        gap: 10px;
       }
-      .track-row {
+      .slider-row {
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        gap: 6px;
-      }
-      .track-label {
-        width: 60px;
-        font-size: 0.75rem;
-        font-weight: 700;
+        font-size: 0.8rem;
         color: #94a3b8;
-        cursor: pointer;
-        text-align: right;
-        padding-right: 6px;
       }
-      .track-label:hover {
-        color: #38bdf8;
+      input[type="range"] {
+        width: 60%;
+        accent-color: #38bdf8;
       }
-      .steps {
+      .sticker-tray {
         display: flex;
-        gap: 4px;
-        flex: 1;
+        gap: 8px;
+        align-items: center;
       }
-      .step {
-        flex: 1;
-        height: 28px;
-        min-width: 18px;
-        background: #0b0f19;
-        border: 1px solid #1e293b;
-        border-radius: 4px;
+      .sticker-btn {
+        background: #1e293b;
+        border: 1px solid #334155;
+        font-size: 1.25rem;
+        border-radius: 8px;
+        padding: 6px 12px;
         cursor: pointer;
-        transition: transform 0.05s;
       }
-      .step:nth-child(4n + 1) {
-        border-left: 2px solid #334155;
+      .action-row {
+        display: flex;
+        gap: 8px;
       }
-      .step.active {
-        background: #38bdf8;
-        box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+      .action-btn {
+        flex: 1;
+        padding: 12px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 800;
+        font-size: 0.9rem;
+        cursor: pointer;
       }
-      .step.current {
-        border-color: #facc15;
-        transform: scale(1.08);
-      }
-      .step.active.current {
-        background: #facc15;
-      }
-      .hint {
-        font-size: 0.75rem;
-        color: #64748b;
-        text-align: center;
-      }
+      .btn-upload { background: #334155; color: white; }
+      .btn-download { background: #10b981; color: #022c22; }
     </style>
   </head>
   <body>
-    <div class="app-wrapper">
-      <div class="header">
-        <h1>🎹 SoundPulse</h1>
-        <span style="font-size: 0.8rem; color: #94a3b8;">16-Step Looper</span>
-      </div>
+    <div class="app-shell">
+      <header>
+        <h1>✨ VibeStudio</h1>
+        <span style="font-size: 0.8rem; color: #64748b;">Photo & Meme Lab</span>
+      </header>
 
-      <div class="controls-bar">
-        <button id="playBtn" class="btn-play" onclick="togglePlay()">▶ Play</button>
-        <div class="tempo-wrap">
-          <div class="tempo-label">
-            <span>TEMPO</span>
-            <span id="bpmText">120 BPM</span>
-          </div>
-          <input type="range" id="bpmSlider" min="70" max="160" value="120" oninput="updateBpm(this.value)" />
+      <div class="canvas-viewport" id="viewport" onclick="triggerFileInput()">
+        <canvas id="photoCanvas"></canvas>
+        <div class="upload-prompt" id="promptText">
+          📷 Tap here to upload a photo or snap a picture
         </div>
       </div>
 
-      <div class="preset-bar">
-        <button class="btn-preset" onclick="loadPreset('trap')">🔥 Trap Groove</button>
-        <button class="btn-preset" onclick="loadPreset('house')">⚡ 4x4 Beat</button>
-        <button class="btn-preset" onclick="clearAll()">🧹 Clear All</button>
+      <input type="file" id="imageLoader" class="file-input" accept="image/*" onchange="handleImage(event)" />
+
+      <!-- Aesthetic Filters Bar -->
+      <div class="filter-scroll">
+        <button class="filter-btn active" onclick="applyPreset('normal', this)">Normal</button>
+        <button class="filter-btn" onclick="applyPreset('cyber', this)">Cyberpunk Neon</button>
+        <button class="filter-btn" onclick="applyPreset('vintage', this)">90s Warm Film</button>
+        <button class="filter-btn" onclick="applyPreset('noir', this)">Noir B&W</button>
+        <button class="filter-btn" onclick="applyPreset('invert', this)">Matrix Invert</button>
       </div>
 
-      <div class="sequencer" id="seqContainer"></div>
+      <!-- Fine-Tune Sliders -->
+      <div class="controls-card">
+        <div class="slider-row">
+          <span>Brightness</span>
+          <input type="range" id="bRange" min="50" max="180" value="100" oninput="renderPhoto()" />
+        </div>
+        <div class="slider-row">
+          <span>Contrast</span>
+          <input type="range" id="cRange" min="50" max="200" value="100" oninput="renderPhoto()" />
+        </div>
+        <div class="slider-row">
+          <span>Saturation</span>
+          <input type="range" id="sRange" min="0" max="250" value="100" oninput="renderPhoto()" />
+        </div>
+      </div>
 
-      <div class="hint">Tap any track label to test its sound directly</div>
+      <!-- Fun Stickers & Memes -->
+      <div class="controls-card">
+        <span style="font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Tap to stamp emoji sticker:</span>
+        <div class="sticker-tray">
+          <button class="sticker-btn" onclick="addSticker('🕶️')">🕶️</button>
+          <button class="sticker-btn" onclick="addSticker('🔥')">🔥</button>
+          <button class="sticker-btn" onclick="addSticker('👑')">👑</button>
+          <button class="sticker-btn" onclick="addSticker('⚡')">⚡</button>
+          <button class="sticker-btn" onclick="addSticker('👽')">👽</button>
+          <button class="sticker-btn" onclick="clearStickers()" style="font-size: 0.8rem; flex: 1; padding: 10px;">Clear Stickers</button>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="action-btn btn-upload" onclick="triggerFileInput()">🔄 Change Photo</button>
+        <button class="action-btn btn-download" onclick="downloadImage()">💾 Save Photo</button>
+      </div>
     </div>
 
     <script>
-      let audioCtx = null;
-      let isPlaying = false;
-      let currentStep = 0;
-      let bpm = 120;
-      let intervalId = null;
+      const canvas = document.getElementById('photoCanvas');
+      const ctx = canvas.getContext('2d');
+      const promptText = document.getElementById('promptText');
+      const fileInput = document.getElementById('imageLoader');
 
-      function initAudio() {
-        if (!audioCtx) {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioCtx.state === 'suspended') {
-          audioCtx.resume();
-        }
+      let currentImg = null;
+      let activePreset = 'normal';
+      let stickers = [];
+      let draggedSticker = null;
+
+      function triggerFileInput() {
+        if (!currentImg) fileInput.click();
       }
 
-      // Synthesizer Instruments
-      const instruments = [
-        {
-          name: 'Kick',
-          play: (t) => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.frequency.setValueAtTime(140, t);
-            osc.frequency.exponentialRampToValueAtTime(35, t + 0.12);
-            gain.gain.setValueAtTime(0.8, t);
-            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(t);
-            osc.stop(t + 0.15);
-          }
-        },
-        {
-          name: 'Snare',
-          play: (t) => {
-            // White noise burst + tone
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(220, t);
-            gain.gain.setValueAtTime(0.3, t);
-            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(t);
-            osc.stop(t + 0.12);
-          }
-        },
-        {
-          name: 'Hi-Hat',
-          play: (t) => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(900, t);
-            gain.gain.setValueAtTime(0.2, t);
-            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(t);
-            osc.stop(t + 0.04);
-          }
-        },
-        {
-          name: 'Clap',
-          play: (t) => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(450, t);
-            gain.gain.setValueAtTime(0.25, t);
-            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(t);
-            osc.stop(t + 0.1);
-          }
-        },
-        {
-          name: 'Bass',
-          play: (t) => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(65, t);
-            gain.gain.setValueAtTime(0.5, t);
-            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(t);
-            osc.stop(t + 0.2);
-          }
-        },
-        {
-          name: 'Laser',
-          play: (t) => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(880, t);
-            osc.frequency.exponentialRampToValueAtTime(200, t + 0.1);
-            gain.gain.setValueAtTime(0.2, t);
-            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(t);
-            osc.stop(t + 0.1);
-          }
-        }
-      ];
+      function handleImage(e) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const img = new Image();
+          img.onload = function() {
+            currentImg = img;
+            promptText.style.display = 'none';
 
-      // Grid Pattern Matrix (6 instruments x 16 steps)
-      let grid = instruments.map(() => Array(16).fill(false));
+            // Scale canvas to fit image proportions comfortably
+            const maxW = 380;
+            const maxH = 340;
+            let w = img.width;
+            let h = img.height;
 
-      function buildGridUI() {
-        const container = document.getElementById('seqContainer');
-        container.innerHTML = '';
+            const ratio = Math.min(maxW / w, maxH / h);
+            canvas.width = w * ratio;
+            canvas.height = h * ratio;
 
-        instruments.forEach((inst, rIdx) => {
-          const row = document.createElement('div');
-          row.className = 'track-row';
-
-          const label = document.createElement('div');
-          label.className = 'track-label';
-          label.textContent = inst.name;
-          label.onclick = () => {
-            initAudio();
-            inst.play(audioCtx.currentTime);
+            stickers = [];
+            renderPhoto();
           };
+          img.src = event.target.result;
+        };
+        if (e.target.files[0]) {
+          reader.readAsDataURL(e.target.files[0]);
+        }
+      }
 
-          const steps = document.createElement('div');
-          steps.className = 'steps';
+      function applyPreset(name, btn) {
+        activePreset = name;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        renderPhoto();
+      }
 
-          for (let c = 0; c < 16; c++) {
-            const step = document.createElement('div');
-            step.className = 'step' + (grid[rIdx][c] ? ' active' : '');
-            step.dataset.row = rIdx;
-            step.dataset.col = c;
-            step.onclick = () => {
-              initAudio();
-              grid[rIdx][c] = !grid[rIdx][c];
-              step.classList.toggle('active', grid[rIdx][c]);
-            };
-            steps.appendChild(step);
-          }
+      function renderPhoto() {
+        if (!currentImg) return;
 
-          row.appendChild(label);
-          row.appendChild(steps);
-          container.appendChild(row);
+        const b = document.getElementById('bRange').value;
+        const c = document.getElementById('cRange').value;
+        const s = document.getElementById('sRange').value;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+
+        let filterString = `brightness(${b}%) contrast(${c}%) saturate(${s}%) `;
+
+        if (activePreset === 'cyber') {
+          filterString += 'hue-rotate(180deg) saturate(180%) contrast(120%)';
+        } else if (activePreset === 'vintage') {
+          filterString += 'sepia(50%) contrast(90%) brightness(105%)';
+        } else if (activePreset === 'noir') {
+          filterString += 'grayscale(100%) contrast(140%)';
+        } else if (activePreset === 'invert') {
+          filterString += 'invert(100%) hue-rotate(90deg)';
+        }
+
+        ctx.filter = filterString;
+        ctx.drawImage(currentImg, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
+
+        // Render stamps/stickers on top
+        stickers.forEach(stk => {
+          ctx.font = `${stk.size}px serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(stk.emoji, stk.x, stk.y);
         });
       }
 
-      function stepTick() {
-        const time = audioCtx.currentTime;
-
-        // Visual highlights
-        document.querySelectorAll('.step.current').forEach(el => el.classList.remove('current'));
-        document.querySelectorAll(`.step[data-col="${currentStep}"]`).forEach(el => el.classList.add('current'));
-
-        // Play active sounds
-        instruments.forEach((inst, rIdx) => {
-          if (grid[rIdx][currentStep]) {
-            inst.play(time);
-          }
+      function addSticker(emoji) {
+        if (!currentImg) return;
+        stickers.push({
+          emoji,
+          x: canvas.width / 2 + (Math.random() - 0.5) * 40,
+          y: canvas.height / 2 + (Math.random() - 0.5) * 40,
+          size: 40
         });
-
-        currentStep = (currentStep + 1) % 16;
+        renderPhoto();
       }
 
-      function togglePlay() {
-        initAudio();
-        const btn = document.getElementById('playBtn');
+      function clearStickers() {
+        stickers = [];
+        renderPhoto();
+      }
 
-        if (isPlaying) {
-          clearInterval(intervalId);
-          isPlaying = false;
-          btn.textContent = '▶ Play';
-          btn.classList.remove('playing');
-          document.querySelectorAll('.step.current').forEach(el => el.classList.remove('current'));
-          currentStep = 0;
-        } else {
-          isPlaying = true;
-          btn.textContent = '⏹ Stop';
-          btn.classList.add('playing');
-          const intervalMs = (60 / bpm / 4) * 1000;
-          stepTick();
-          intervalId = setInterval(stepTick, intervalMs);
+      // Drag Stickers on Screen (Finger Touch or Mouse)
+      function getCanvasCoordinates(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: (clientX - rect.left) * (canvas.width / rect.width),
+          y: (clientY - rect.top) * (canvas.height / rect.height)
+        };
+      }
+
+      function onPointerDown(e) {
+        if (!currentImg) return;
+        const pos = getCanvasCoordinates(e);
+        for (let i = stickers.length - 1; i >= 0; i--) {
+          const stk = stickers[i];
+          if (Math.hypot(stk.x - pos.x, stk.y - pos.y) < stk.size / 1.5) {
+            draggedSticker = stk;
+            break;
+          }
         }
       }
 
-      function updateBpm(val) {
-        bpm = parseInt(val, 10);
-        document.getElementById('bpmText').textContent = bpm + ' BPM';
-        if (isPlaying) {
-          clearInterval(intervalId);
-          intervalId = setInterval(stepTick, (60 / bpm / 4) * 1000);
-        }
+      function onPointerMove(e) {
+        if (!draggedSticker) return;
+        const pos = getCanvasCoordinates(e);
+        draggedSticker.x = pos.x;
+        draggedSticker.y = pos.y;
+        renderPhoto();
       }
 
-      function clearAll() {
-        grid = instruments.map(() => Array(16).fill(false));
-        buildGridUI();
+      function onPointerUp() {
+        draggedSticker = null;
       }
 
-      function loadPreset(type) {
-        clearAll();
-        if (type === 'house') {
-          // Four on the floor Kick
-          [0, 4, 8, 12].forEach(s => grid[0][s] = true);
-          // Snare/Clap on 4, 12
-          [4, 12].forEach(s => grid[3][s] = true);
-          // Offbeat Hi-Hats
-          [2, 6, 10, 14].forEach(s => grid[2][s] = true);
-          // Bass groove
-          [0, 3, 6, 10, 14].forEach(s => grid[4][s] = true);
-          updateBpm(124);
-        } else if (type === 'trap') {
-          // Trap Kick pattern
-          [0, 7, 10].forEach(s => grid[0][s] = true);
-          // Snare on beat 8
-          [8].forEach(s => grid[1][s] = true);
-          // Fast rolling hats
-          [0, 2, 4, 6, 8, 10, 12, 13, 14, 15].forEach(s => grid[2][s] = true);
-          // Laser blip accent
-          [14].forEach(s => grid[5][s] = true);
-          updateBpm(140);
-        }
-        buildGridUI();
-      }
+      canvas.addEventListener('mousedown', onPointerDown);
+      window.addEventListener('mousemove', onPointerMove);
+      window.addEventListener('mouseup', onPointerUp);
 
-      // Initialize with Trap Preset
-      loadPreset('trap');
+      canvas.addEventListener('touchstart', onPointerDown, { passive: true });
+      window.addEventListener('touchmove', onPointerMove, { passive: true });
+      window.addEventListener('touchend', onPointerUp);
+
+      function downloadImage() {
+        if (!currentImg) return;
+        const a = document.createElement('a');
+        a.download = 'vibestudio-masterpiece.png';
+        a.href = canvas.toDataURL('image/png');
+        a.click();
+      }
     </script>
   </body>
 </html>
