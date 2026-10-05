@@ -3,6 +3,45 @@ const app = express();
 
 const PORT = process.env.PORT || 3000;
 
+app.use(express.json());
+
+// In-memory data stored on the server
+let messages = [
+  { user: 'System', text: 'Welcome to the live vibe room!' }
+];
+
+let poll = {
+  question: 'What should we vibe code next?',
+  options: [
+    { text: 'AI Image Generator', votes: 0 },
+    { text: 'Crypto Price Dashboard', votes: 0 },
+    { text: 'Multiplayer Mini-Game', votes: 0 }
+  ]
+};
+
+// API Endpoints
+app.get('/api/data', (req, res) => {
+  res.json({ messages, poll });
+});
+
+app.post('/api/message', (req, res) => {
+  const { user, text } = req.body;
+  if (user && text) {
+    messages.push({ user: user.trim(), text: text.trim() });
+    if (messages.length > 30) messages.shift(); // keep last 30 messages
+  }
+  res.json({ success: true });
+});
+
+app.post('/api/vote', (req, res) => {
+  const { index } = req.body;
+  if (poll.options[index]) {
+    poll.options[index].votes += 1;
+  }
+  res.json({ success: true });
+});
+
+// Front-end UI
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -10,7 +49,7 @@ app.get('/', (req, res) => {
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>VibeWallet - Expense Tracker</title>
+        <title>Vibe Room & Poll</title>
         <style>
           * { box-sizing: border-box; }
           body {
@@ -18,206 +57,185 @@ app.get('/', (req, res) => {
             background-color: #0b0f19;
             color: #f1f5f9;
             margin: 0;
-            padding: 24px 16px;
+            padding: 20px 16px;
             display: flex;
             justify-content: center;
           }
-          .app-card {
+          .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+          }
+          @media (min-width: 768px) {
+            .grid { grid-template-columns: 1fr 1fr; }
+          }
+          .card {
             background-color: #151d30;
             border: 1px solid #1e293b;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 480px;
-            padding: 24px;
-            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
-          }
-          h1 {
-            margin: 0 0 16px 0;
-            color: #38bdf8;
-            font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-          }
-          .summary-box {
-            background: linear-gradient(135deg, #0284c7, #2563eb);
-            padding: 18px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 20px;
-          }
-          .summary-label {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.85;
-          }
-          .summary-amount {
-            font-size: 2.2rem;
-            font-weight: 800;
-            margin-top: 4px;
-          }
-          .form-group {
+            border-radius: 14px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin-bottom: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
           }
-          input, select, button {
-            padding: 12px;
+          h2 { margin: 0 0 16px 0; font-size: 1.25rem; color: #38bdf8; }
+          .chat-box {
+            background: #0b0f19;
+            border: 1px solid #1e293b;
             border-radius: 8px;
+            padding: 12px;
+            height: 260px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+          }
+          .chat-msg { font-size: 0.9rem; line-height: 1.4; word-break: break-word; }
+          .chat-user { font-weight: bold; color: #38bdf8; margin-right: 6px; }
+          .chat-inputs { display: flex; flex-direction: column; gap: 8px; }
+          input, button {
+            padding: 10px 12px;
+            border-radius: 6px;
             border: 1px solid #334155;
             background: #0b0f19;
             color: white;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             outline: none;
           }
-          input:focus, select:focus {
-            border-color: #38bdf8;
-          }
-          button.add-btn {
-            background-color: #38bdf8;
-            color: #0b0f19;
-            font-weight: 700;
+          button {
+            background: #0284c7;
             border: none;
+            font-weight: 600;
             cursor: pointer;
           }
-          button.add-btn:hover {
-            background-color: #0284c7;
-            color: white;
-          }
-          h2 {
-            font-size: 1.1rem;
-            margin: 0 0 12px 0;
-            color: #94a3b8;
-          }
-          ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-          }
-          li {
-            background-color: #0b0f19;
+          button:hover { background: #0369a1; }
+          .poll-option {
+            background: #0b0f19;
             border: 1px solid #1e293b;
-            padding: 12px 14px;
+            padding: 12px;
             border-radius: 8px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+          }
+          .poll-bar {
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            background: rgba(56, 189, 248, 0.15);
+            transition: width 0.3s ease;
+          }
+          .poll-content {
+            position: relative;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-          }
-          .item-desc {
-            font-weight: 500;
-          }
-          .item-category {
-            font-size: 0.75rem;
-            color: #64748b;
-            display: block;
-          }
-          .item-amount {
-            font-weight: 700;
-            color: #f87171;
-            margin-right: 12px;
-          }
-          .del-btn {
-            background: #ef4444;
-            border: none;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            cursor: pointer;
-          }
-          .empty-msg {
-            text-align: center;
-            color: #64748b;
             font-size: 0.9rem;
-            padding: 16px 0;
+            font-weight: 500;
           }
         </style>
       </head>
       <body>
-        <div class="app-card">
-          <h1>💳 VibeWallet</h1>
-
-          <div class="summary-box">
-            <div class="summary-label">Total Spent</div>
-            <div class="summary-amount" id="totalDisplay">$0.00</div>
+        <div class="grid">
+          <!-- Live Room Chat -->
+          <div class="card">
+            <h2>💬 Live Room Chat</h2>
+            <div class="chat-box" id="chatBox"></div>
+            <div class="chat-inputs">
+              <input type="text" id="userInput" placeholder="Your name (e.g. Alex)" />
+              <div style="display:flex; gap: 8px;">
+                <input type="text" id="msgInput" placeholder="Type a message..." style="flex:1;" />
+                <button onclick="sendMessage()">Send</button>
+              </div>
+            </div>
           </div>
 
-          <div class="form-group">
-            <input type="text" id="descInput" placeholder="What did you buy? (e.g. Coffee)" />
-            <input type="number" id="amountInput" placeholder="Amount (e.g. 4.50)" step="0.01" />
-            <select id="catSelect">
-              <option value="Food & Drinks">🍔 Food & Drinks</option>
-              <option value="Shopping">🛍️️ Shopping</option>
-              <option value="Transport">🚗 Transport</option>
-              <option value="Bills">💡 Bills</option>
-              <option value="Other">✨ Other</option>
-            </select>
-            <button class="add-btn" onclick="addExpense()">Add Expense</button>
+          <!-- Community Poll -->
+          <div class="card">
+            <h2>📊 Community Poll</h2>
+            <p id="pollQuestion" style="color: #94a3b8; font-size: 0.95rem; margin-top: 0;"></p>
+            <div id="pollOptions"></div>
+            <p style="font-size: 0.8rem; color: #64748b; text-align: center; margin-top: auto;">
+              Click an option to cast your vote!
+            </p>
           </div>
-
-          <h2>Recent Expenses</h2>
-          <ul id="expenseList"></ul>
-          <div id="emptyMsg" class="empty-msg">No expenses tracked yet.</div>
         </div>
 
         <script>
-          const expenses = [];
-
-          function updateUI() {
-            const list = document.getElementById('expenseList');
-            const totalDisplay = document.getElementById('totalDisplay');
-            const emptyMsg = document.getElementById('emptyMsg');
-
-            list.innerHTML = '';
-            let total = 0;
-
-            if (expenses.length === 0) {
-              emptyMsg.style.display = 'block';
-            } else {
-              emptyMsg.style.display = 'none';
-              expenses.forEach((item, index) => {
-                total += item.amount;
-                const li = document.createElement('li');
-                li.innerHTML = \`
-                  <div>
-                    <span class="item-desc">\${item.desc}</span>
-                    <span class="item-category">\${item.category}</span>
-                  </div>
-                  <div>
-                    <span class="item-amount">-\$\${item.amount.toFixed(2)}</span>
-                    <button class="del-btn" onclick="deleteExpense(\${index})">✕</button>
-                  </div>
-                \`;
-                list.appendChild(li);
-              });
+          async function fetchData() {
+            try {
+              const res = await fetch('/api/data');
+              const data = await res.json();
+              renderChat(data.messages);
+              renderPoll(data.poll);
+            } catch (err) {
+              console.error(err);
             }
-
-            totalDisplay.textContent = '$' + total.toFixed(2);
           }
 
-          function addExpense() {
-            const desc = document.getElementById('descInput').value.trim();
-            const amount = parseFloat(document.getElementById('amountInput').value);
-            const category = document.getElementById('catSelect').value;
-
-            if (!desc || isNaN(amount) || amount <= 0) {
-              alert('Please enter a valid item name and amount.');
-              return;
-            }
-
-            expenses.unshift({ desc, amount, category });
-            document.getElementById('descInput').value = '';
-            document.getElementById('amountInput').value = '';
-            updateUI();
+          function renderChat(messages) {
+            const chatBox = document.getElementById('chatBox');
+            chatBox.innerHTML = messages.map(m => \`
+              <div class="chat-msg">
+                <span class="chat-user">\${m.user}:</span>\${m.text}
+              </div>
+            \`).join('');
           }
 
-          function deleteExpense(index) {
-            expenses.splice(index, 1);
-            updateUI();
+          function renderPoll(poll) {
+            document.getElementById('pollQuestion').textContent = poll.question;
+            const container = document.getElementById('pollOptions');
+            const totalVotes = poll.options.reduce((sum, o) => sum + o.votes, 0);
+
+            container.innerHTML = poll.options.map((opt, idx) => {
+              const pct = totalVotes === 0 ? 0 : Math.round((opt.votes / totalVotes) * 100);
+              return \`
+                <div class="poll-option" onclick="vote(\${idx})">
+                  <div class="poll-bar" style="width: \${pct}%"></div>
+                  <div class="poll-content">
+                    <span>\${opt.text}</span>
+                    <span>\${opt.votes} (\${pct}%)</span>
+                  </div>
+                </div>
+              \`;
+            }).join('');
           }
+
+          async function sendMessage() {
+            const user = document.getElementById('userInput').value || 'Anonymous';
+            const msgInput = document.getElementById('msgInput');
+            const text = msgInput.value.trim();
+            if (!text) return;
+
+            await fetch('/api/message', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ user, text })
+            });
+
+            msgInput.value = '';
+            fetchData();
+          }
+
+          async function vote(index) {
+            await fetch('/api/vote', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ index })
+            });
+            fetchData();
+          }
+
+          document.getElementById('msgInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendMessage();
+          });
+
+          // Fetch fresh data immediately and poll every 2 seconds
+          fetchData();
+          setInterval(fetchData, 2000);
         </script>
       </body>
     </html>
