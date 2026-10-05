@@ -2,10 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>VibeStudio Photo Editor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <title>FlashQR Studio</title>
+    <!-- Lightweight, trusted open-source engines for QR creation & scanning -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
       body {
         font-family: system-ui, -apple-system, sans-serif;
         background-color: #030712;
@@ -13,331 +16,293 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 16px 12px;
+        padding: 20px 16px;
         min-height: 100vh;
       }
-      .app-shell {
+      .container {
         width: 100%;
         max-width: 440px;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 16px;
       }
-      header {
+      .tab-bar {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        background: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 10px;
+        padding: 4px;
+        gap: 4px;
       }
-      h1 { font-size: 1.35rem; color: #38bdf8; }
-      .canvas-viewport {
-        width: 100%;
-        height: 340px;
-        background: #0f172a;
-        border: 2px dashed #334155;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        overflow: hidden;
-      }
-      canvas {
-        max-width: 100%;
-        max-height: 100%;
-        border-radius: 8px;
-        display: block;
-      }
-      .upload-prompt {
-        text-align: center;
+      .tab-btn {
+        flex: 1;
+        padding: 10px;
+        background: transparent;
+        border: none;
         color: #94a3b8;
-        font-size: 0.9rem;
-        cursor: pointer;
-        padding: 20px;
-      }
-      .file-input { display: none; }
-      .filter-scroll {
-        display: flex;
-        gap: 8px;
-        overflow-x: auto;
-        padding-bottom: 4px;
-      }
-      .filter-btn {
-        background: #1e293b;
-        color: #94a3b8;
-        border: 1px solid #334155;
-        padding: 8px 14px;
-        border-radius: 20px;
-        font-size: 0.8rem;
         font-weight: 700;
-        white-space: nowrap;
+        font-size: 0.9rem;
+        border-radius: 8px;
         cursor: pointer;
+        transition: all 0.2s ease;
       }
-      .filter-btn.active {
+      .tab-btn.active {
         background: #0284c7;
         color: #ffffff;
-        border-color: #38bdf8;
       }
-      .controls-card {
+      .card {
         background: #0f172a;
         border: 1px solid #1e293b;
-        border-radius: 12px;
-        padding: 14px;
+        border-radius: 14px;
+        padding: 20px;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 14px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
       }
-      .slider-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+      label {
         font-size: 0.8rem;
+        font-weight: 600;
         color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
-      input[type="range"] {
-        width: 60%;
-        accent-color: #38bdf8;
-      }
-      .sticker-tray {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-      .sticker-btn {
-        background: #1e293b;
+      input[type="text"], textarea {
+        width: 100%;
+        padding: 12px;
+        background: #030712;
         border: 1px solid #334155;
-        font-size: 1.25rem;
         border-radius: 8px;
-        padding: 6px 12px;
+        color: #f8fafc;
+        font-size: 0.95rem;
+        outline: none;
+      }
+      input[type="text"]:focus, textarea:focus {
+        border-color: #38bdf8;
+      }
+      .color-options {
+        display: flex;
+        gap: 12px;
+      }
+      .color-field {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      input[type="color"] {
+        width: 100%;
+        height: 38px;
+        border-radius: 6px;
+        border: 1px solid #334155;
+        background: #030712;
         cursor: pointer;
       }
-      .action-row {
+      .qr-output-area {
         display: flex;
-        gap: 8px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: #030712;
+        border: 1px solid #1e293b;
+        border-radius: 10px;
+        min-height: 230px;
+      }
+      #qrcode img, #qrcode canvas {
+        border-radius: 8px;
+        max-width: 100%;
       }
       .action-btn {
-        flex: 1;
         padding: 12px;
-        border-radius: 8px;
+        background: #0284c7;
+        color: white;
         border: none;
-        font-weight: 800;
-        font-size: 0.9rem;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.95rem;
         cursor: pointer;
+        transition: background 0.15s ease;
       }
-      .btn-upload { background: #334155; color: white; }
-      .btn-download { background: #10b981; color: #022c22; }
+      .action-btn:hover { background: #0369a1; }
+      .scanner-window {
+        width: 100%;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .scan-result-box {
+        background: #030712;
+        border: 1px solid #1e293b;
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 0.9rem;
+        word-break: break-all;
+        color: #38bdf8;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+      }
     </style>
   </head>
   <body>
-    <div class="app-shell">
-      <header>
-        <h1>✨ VibeStudio</h1>
-        <span style="font-size: 0.8rem; color: #64748b;">Photo & Meme Lab</span>
-      </header>
-
-      <div class="canvas-viewport" id="viewport" onclick="triggerFileInput()">
-        <canvas id="photoCanvas"></canvas>
-        <div class="upload-prompt" id="promptText">
-          📷 Tap here to upload a photo or snap a picture
-        </div>
+    <div class="container">
+      <div style="text-align: center; margin-bottom: 4px;">
+        <h1 style="color: #38bdf8; font-size: 1.5rem;">⚡ FlashQR Studio</h1>
+        <p style="color: #64748b; font-size: 0.85rem;">Fast Generator & Camera Scanner</p>
       </div>
 
-      <input type="file" id="imageLoader" class="file-input" accept="image/*" onchange="handleImage(event)" />
-
-      <!-- Aesthetic Filters Bar -->
-      <div class="filter-scroll">
-        <button class="filter-btn active" onclick="applyPreset('normal', this)">Normal</button>
-        <button class="filter-btn" onclick="applyPreset('cyber', this)">Cyberpunk Neon</button>
-        <button class="filter-btn" onclick="applyPreset('vintage', this)">90s Warm Film</button>
-        <button class="filter-btn" onclick="applyPreset('noir', this)">Noir B&W</button>
-        <button class="filter-btn" onclick="applyPreset('invert', this)">Matrix Invert</button>
+      <div class="tab-bar">
+        <button class="tab-btn active" id="btnTabGen" onclick="switchTab('generate')">Create Code</button>
+        <button class="tab-btn" id="btnTabScan" onclick="switchTab('scan')">Live Scanner</button>
       </div>
 
-      <!-- Fine-Tune Sliders -->
-      <div class="controls-card">
-        <div class="slider-row">
-          <span>Brightness</span>
-          <input type="range" id="bRange" min="50" max="180" value="100" oninput="renderPhoto()" />
+      <!-- Generator Section -->
+      <div class="card" id="genSection">
+        <div>
+          <label>Target Content / URL</label>
+          <input type="text" id="qrText" value="https://railway.app" placeholder="Paste website, phone number, or text" oninput="renderQR()" />
         </div>
-        <div class="slider-row">
-          <span>Contrast</span>
-          <input type="range" id="cRange" min="50" max="200" value="100" oninput="renderPhoto()" />
+
+        <div class="color-options">
+          <div class="color-field">
+            <label>Code Color</label>
+            <input type="color" id="qrColorDark" value="#000000" onchange="renderQR()" />
+          </div>
+          <div class="color-field">
+            <label>Background</label>
+            <input type="color" id="qrColorLight" value="#ffffff" onchange="renderQR()" />
+          </div>
         </div>
-        <div class="slider-row">
-          <span>Saturation</span>
-          <input type="range" id="sRange" min="0" max="250" value="100" oninput="renderPhoto()" />
+
+        <div class="qr-output-area">
+          <div id="qrcode"></div>
         </div>
+
+        <button class="action-btn" onclick="saveQRCode()">💾 Download PNG Image</button>
       </div>
 
-      <!-- Fun Stickers & Memes -->
-      <div class="controls-card">
-        <span style="font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Tap to stamp emoji sticker:</span>
-        <div class="sticker-tray">
-          <button class="sticker-btn" onclick="addSticker('🕶️')">🕶️</button>
-          <button class="sticker-btn" onclick="addSticker('🔥')">🔥</button>
-          <button class="sticker-btn" onclick="addSticker('👑')">👑</button>
-          <button class="sticker-btn" onclick="addSticker('⚡')">⚡</button>
-          <button class="sticker-btn" onclick="addSticker('👽')">👽</button>
-          <button class="sticker-btn" onclick="clearStickers()" style="font-size: 0.8rem; flex: 1; padding: 10px;">Clear Stickers</button>
-        </div>
-      </div>
+      <!-- Scanner Section -->
+      <div class="card" id="scanSection" style="display: none;">
+        <div id="scannerReader" class="scanner-window"></div>
+        <button class="action-btn" id="startCamBtn" onclick="toggleCameraScanner()">📷 Start Camera</button>
 
-      <div class="action-row">
-        <button class="action-btn btn-upload" onclick="triggerFileInput()">🔄 Change Photo</button>
-        <button class="action-btn btn-download" onclick="downloadImage()">💾 Save Photo</button>
+        <div>
+          <label>Scanned Detection</label>
+          <div class="scan-result-box" id="scanOutput">Camera is inactive. Tap start to scan.</div>
+        </div>
       </div>
     </div>
 
     <script>
-      const canvas = document.getElementById('photoCanvas');
-      const ctx = canvas.getContext('2d');
-      const promptText = document.getElementById('promptText');
-      const fileInput = document.getElementById('imageLoader');
+      let qrEngine = null;
+      let html5QrScanner = null;
+      let scannerRunning = false;
 
-      let currentImg = null;
-      let activePreset = 'normal';
-      let stickers = [];
-      let draggedSticker = null;
+      function renderQR() {
+        const text = document.getElementById('qrText').value.trim() || ' ';
+        const colorDark = document.getElementById('qrColorDark').value;
+        const colorLight = document.getElementById('qrColorLight').value;
+        const container = document.getElementById('qrcode');
 
-      function triggerFileInput() {
-        if (!currentImg) fileInput.click();
-      }
-
-      function handleImage(e) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          const img = new Image();
-          img.onload = function() {
-            currentImg = img;
-            promptText.style.display = 'none';
-
-            // Scale canvas to fit image proportions comfortably
-            const maxW = 380;
-            const maxH = 340;
-            let w = img.width;
-            let h = img.height;
-
-            const ratio = Math.min(maxW / w, maxH / h);
-            canvas.width = w * ratio;
-            canvas.height = h * ratio;
-
-            stickers = [];
-            renderPhoto();
-          };
-          img.src = event.target.result;
-        };
-        if (e.target.files[0]) {
-          reader.readAsDataURL(e.target.files[0]);
-        }
-      }
-
-      function applyPreset(name, btn) {
-        activePreset = name;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        if (btn) btn.classList.add('active');
-        renderPhoto();
-      }
-
-      function renderPhoto() {
-        if (!currentImg) return;
-
-        const b = document.getElementById('bRange').value;
-        const c = document.getElementById('cRange').value;
-        const s = document.getElementById('sRange').value;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.save();
-
-        let filterString = `brightness(${b}%) contrast(${c}%) saturate(${s}%) `;
-
-        if (activePreset === 'cyber') {
-          filterString += 'hue-rotate(180deg) saturate(180%) contrast(120%)';
-        } else if (activePreset === 'vintage') {
-          filterString += 'sepia(50%) contrast(90%) brightness(105%)';
-        } else if (activePreset === 'noir') {
-          filterString += 'grayscale(100%) contrast(140%)';
-        } else if (activePreset === 'invert') {
-          filterString += 'invert(100%) hue-rotate(90deg)';
-        }
-
-        ctx.filter = filterString;
-        ctx.drawImage(currentImg, 0, 0, canvas.width, canvas.height);
-        ctx.restore();
-
-        // Render stamps/stickers on top
-        stickers.forEach(stk => {
-          ctx.font = `${stk.size}px serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(stk.emoji, stk.x, stk.y);
+        container.innerHTML = '';
+        qrEngine = new QRCode(container, {
+          text: text,
+          width: 190,
+          height: 190,
+          colorDark: colorDark,
+          colorLight: colorLight,
+          correctLevel: QRCode.CorrectLevel.H
         });
       }
 
-      function addSticker(emoji) {
-        if (!currentImg) return;
-        stickers.push({
-          emoji,
-          x: canvas.width / 2 + (Math.random() - 0.5) * 40,
-          y: canvas.height / 2 + (Math.random() - 0.5) * 40,
-          size: 40
-        });
-        renderPhoto();
-      }
-
-      function clearStickers() {
-        stickers = [];
-        renderPhoto();
-      }
-
-      // Drag Stickers on Screen (Finger Touch or Mouse)
-      function getCanvasCoordinates(e) {
-        const rect = canvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return {
-          x: (clientX - rect.left) * (canvas.width / rect.width),
-          y: (clientY - rect.top) * (canvas.height / rect.height)
-        };
-      }
-
-      function onPointerDown(e) {
-        if (!currentImg) return;
-        const pos = getCanvasCoordinates(e);
-        for (let i = stickers.length - 1; i >= 0; i--) {
-          const stk = stickers[i];
-          if (Math.hypot(stk.x - pos.x, stk.y - pos.y) < stk.size / 1.5) {
-            draggedSticker = stk;
-            break;
+      function saveQRCode() {
+        const img = document.querySelector('#qrcode img');
+        if (img && img.src) {
+          const a = document.createElement('a');
+          a.href = img.src;
+          a.download = 'flashqr-code.png';
+          a.click();
+        } else {
+          const canvas = document.querySelector('#qrcode canvas');
+          if (canvas) {
+            const a = document.createElement('a');
+            a.href = canvas.toDataURL('image/png');
+            a.download = 'flashqr-code.png';
+            a.click();
           }
         }
       }
 
-      function onPointerMove(e) {
-        if (!draggedSticker) return;
-        const pos = getCanvasCoordinates(e);
-        draggedSticker.x = pos.x;
-        draggedSticker.y = pos.y;
-        renderPhoto();
+      function switchTab(mode) {
+        const genSec = document.getElementById('genSection');
+        const scanSec = document.getElementById('scanSection');
+        const btnGen = document.getElementById('btnTabGen');
+        const btnScan = document.getElementById('btnTabScan');
+
+        if (mode === 'generate') {
+          genSec.style.display = 'flex';
+          scanSec.style.display = 'none';
+          btnGen.classList.add('active');
+          btnScan.classList.remove('active');
+          stopScanner();
+        } else {
+          genSec.style.display = 'none';
+          scanSec.style.display = 'flex';
+          btnGen.classList.remove('active');
+          btnScan.classList.add('active');
+        }
       }
 
-      function onPointerUp() {
-        draggedSticker = null;
+      function toggleCameraScanner() {
+        if (scannerRunning) {
+          stopScanner();
+        } else {
+          startScanner();
+        }
       }
 
-      canvas.addEventListener('mousedown', onPointerDown);
-      window.addEventListener('mousemove', onPointerMove);
-      window.addEventListener('mouseup', onPointerUp);
+      function startScanner() {
+        const btn = document.getElementById('startCamBtn');
+        const output = document.getElementById('scanOutput');
+        output.textContent = 'Point your lens at any QR code...';
 
-      canvas.addEventListener('touchstart', onPointerDown, { passive: true });
-      window.addEventListener('touchmove', onPointerMove, { passive: true });
-      window.addEventListener('touchend', onPointerUp);
-
-      function downloadImage() {
-        if (!currentImg) return;
-        const a = document.createElement('a');
-        a.download = 'vibestudio-masterpiece.png';
-        a.href = canvas.toDataURL('image/png');
-        a.click();
+        html5QrScanner = new Html5Qrcode('scannerReader');
+        html5QrScanner.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 220, height: 220 } },
+          (decodedText) => {
+            output.textContent = decodedText;
+            if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
+              output.innerHTML = `<a href="${decodedText}" target="_blank" style="color: #38bdf8; text-decoration: underline;">${decodedText} ↗</a>`;
+            }
+            stopScanner();
+          },
+          () => {} // suppress read frame misses
+        ).then(() => {
+          scannerRunning = true;
+          btn.textContent = '🛑 Stop Camera';
+          btn.style.background = '#ef4444';
+        }).catch((err) => {
+          output.textContent = 'Camera error: ' + err;
+        });
       }
+
+      function stopScanner() {
+        if (html5QrScanner && scannerRunning) {
+          html5QrScanner.stop().then(() => {
+            html5QrScanner.clear();
+            scannerRunning = false;
+            const btn = document.getElementById('startCamBtn');
+            if (btn) {
+              btn.textContent = '📷 Start Camera';
+              btn.style.background = '#0284c7';
+            }
+          }).catch(() => {});
+        }
+      }
+
+      // Initial render on load
+      renderQR();
     </script>
   </body>
 </html>
