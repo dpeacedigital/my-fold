@@ -39,22 +39,31 @@
       .high-val { color: #f59e0b; }
       .action-row {
         display: flex;
-        gap: 8px;
+        gap: 10px;
         margin-top: 10px;
         width: 100%;
       }
-      .pause-btn {
+      .control-btn {
         flex: 1;
         padding: 10px;
         font-size: 0.95rem;
         font-weight: 700;
-        background: #334155;
-        color: #f8fafc;
-        border: 1px solid #475569;
         border-radius: 8px;
         cursor: pointer;
+        border: 1px solid #475569;
+        transition: all 0.15s ease;
+      }
+      .pause-btn {
+        background: #334155;
+        color: #f8fafc;
       }
       .pause-btn:hover { background: #475569; }
+      .restart-btn {
+        background: #0284c7;
+        color: white;
+        border-color: #0369a1;
+      }
+      .restart-btn:hover { background: #0369a1; }
       canvas {
         background: #0f172a;
         border: 2px solid #1e293b;
@@ -98,8 +107,10 @@
 
       <canvas id="gameCanvas" width="360" height="480"></canvas>
 
+      <!-- Action buttons: Pause and Restart -->
       <div class="action-row">
-        <button class="pause-btn" id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
+        <button class="control-btn pause-btn" id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
+        <button class="control-btn restart-btn" id="restartBtn" onclick="manualRestart()">🔄 Restart</button>
       </div>
 
       <!-- Touch Controls for Phones -->
@@ -107,7 +118,7 @@
         <button class="touch-btn" id="leftBtn">◀ Left</button>
         <button class="touch-btn" id="rightBtn">Right ▶</button>
       </div>
-      <div class="hint">Keyboard: A/D or Arrows | P to Pause</div>
+      <div class="hint">Keyboard: A/D or Arrows | P to Pause | R to Restart</div>
     </div>
 
     <script>
@@ -142,7 +153,7 @@
         bonuses.push({ x, y: -16, size: 14, speed: 2 });
       }
 
-      function resetGame() {
+      function manualRestart() {
         player.x = 160;
         obstacles = [];
         bonuses = [];
@@ -166,12 +177,13 @@
         }
       }
 
-      // Keyboard events
+      // Keyboard listeners
       window.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') leftPressed = true;
         if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') rightPressed = true;
         if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') togglePause();
-        if (gameOver && (e.key === ' ' || e.key === 'Enter')) resetGame();
+        if (e.key === 'r' || e.key === 'R') manualRestart();
+        if (gameOver && (e.key === ' ' || e.key === 'Enter')) manualRestart();
       });
 
       window.addEventListener('keyup', (e) => {
@@ -179,7 +191,7 @@
         if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') rightPressed = false;
       });
 
-      // Touch controls
+      // Mobile Touch buttons
       const lBtn = document.getElementById('leftBtn');
       const rBtn = document.getElementById('rightBtn');
 
@@ -194,7 +206,7 @@
       rBtn.addEventListener('mouseup', () => { rightPressed = false; });
 
       canvas.addEventListener('click', () => {
-        if (gameOver) resetGame();
+        if (gameOver) manualRestart();
       });
 
       function update() {
@@ -266,7 +278,7 @@
           ctx.fill();
         });
 
-        // Bonuses
+        // Energy Orbs
         ctx.fillStyle = '#10b981';
         bonuses.forEach((b) => {
           ctx.beginPath();
@@ -289,7 +301,7 @@
 
           ctx.fillStyle = '#38bdf8';
           ctx.font = '14px system-ui';
-          ctx.fillText('Tap screen or press Enter to restart', canvas.width / 2, 290);
+          ctx.fillText('Click Restart or tap screen to play again', canvas.width / 2, 290);
         }
       }
 
