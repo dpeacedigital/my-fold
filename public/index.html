@@ -3,180 +3,167 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Cyber Slice 3000</title>
+    <title>VibeDraw Live Whiteboard</title>
     <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        touch-action: none;
-        -webkit-touch-callout: none;
-        user-select: none;
-      }
+      * { box-sizing: border-box; margin: 0; padding: 0; touch-action: none; -webkit-touch-callout: none; user-select: none; }
       body {
         font-family: system-ui, -apple-system, sans-serif;
-        background-color: #030712;
+        background: #030712;
         color: #f8fafc;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
+        padding: 10px;
         min-height: 100vh;
-        overflow: hidden;
       }
-      .game-wrap {
+      .board-wrap {
+        width: 100%;
+        max-width: 440px;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        width: 100%;
-        max-width: 400px;
-        padding: 8px;
-        position: relative;
+        gap: 8px;
       }
-      .hud {
+      header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        width: 100%;
-        margin-bottom: 8px;
-        font-weight: 800;
-        font-size: 1rem;
       }
-      .score-box { color: #38bdf8; }
-      .combo-box { color: #facc15; font-size: 0.9rem; }
-      .lives-box { color: #ef4444; letter-spacing: 2px; }
+      h1 { font-size: 1.3rem; color: #38bdf8; }
+      .tools-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #0f172a;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid #1e293b;
+      }
+      .color-dot {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid transparent;
+      }
+      .color-dot.active {
+        border-color: #ffffff;
+        transform: scale(1.15);
+      }
+      input[type="range"] {
+        width: 60px;
+        accent-color: #38bdf8;
+      }
+      .btn-clear {
+        margin-left: auto;
+        padding: 6px 12px;
+        background: #ef4444;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-weight: 700;
+        font-size: 0.8rem;
+        cursor: pointer;
+      }
       canvas {
-        background: radial-gradient(circle at center, #0f172a 0%, #030712 100%);
+        background: #090d16;
         border: 2px solid #1e293b;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        border-radius: 10px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
         display: block;
         cursor: crosshair;
       }
-      .action-bar {
+      .chat-card {
+        background: #0f172a;
+        border: 1px solid #1e293b;
+        border-radius: 10px;
+        padding: 10px;
         display: flex;
-        gap: 8px;
-        margin-top: 10px;
-        width: 100%;
+        flex-direction: column;
+        gap: 6px;
       }
-      .btn {
-        flex: 1;
-        padding: 10px 0;
+      .chat-feed {
+        height: 90px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
         font-size: 0.85rem;
-        font-weight: 700;
-        border-radius: 8px;
-        cursor: pointer;
-        border: 1px solid #334155;
-        background: #1e293b;
-        color: #f8fafc;
       }
-      .btn:hover { background: #334155; }
-      .btn-active { color: #4ade80; border-color: #22c55e; }
-      .hint {
-        font-size: 0.75rem;
-        color: #64748b;
-        margin-top: 6px;
-        text-align: center;
+      .chat-msg { word-break: break-word; }
+      .chat-sender { color: #38bdf8; font-weight: 700; margin-right: 4px; }
+      .chat-input-row {
+        display: flex;
+        gap: 6px;
+      }
+      input[type="text"] {
+        flex: 1;
+        padding: 8px;
+        background: #030712;
+        border: 1px solid #334155;
+        border-radius: 6px;
+        color: white;
+        font-size: 0.85rem;
+        outline: none;
+      }
+      .btn-send {
+        background: #0284c7;
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
       }
     </style>
   </head>
   <body>
-    <div class="game-wrap">
-      <div class="hud">
-        <span class="score-box">Score: <span id="scoreText">0</span></span>
-        <span class="combo-box" id="comboText"></span>
-        <span class="lives-box" id="livesText">❤️❤️❤️</span>
+    <div class="board-wrap">
+      <header>
+        <h1>🎨 VibeDraw Live</h1>
+        <span style="font-size: 0.75rem; color: #10b981;">● Online</span>
+      </header>
+
+      <div class="tools-bar">
+        <div class="color-dot active" style="background:#38bdf8;" onclick="pickColor('#38bdf8', this)"></div>
+        <div class="color-dot" style="background:#ef4444;" onclick="pickColor('#ef4444', this)"></div>
+        <div class="color-dot" style="background:#10b981;" onclick="pickColor('#10b981', this)"></div>
+        <div class="color-dot" style="background:#facc15;" onclick="pickColor('#facc15', this)"></div>
+        <div class="color-dot" style="background:#ffffff;" onclick="pickColor('#ffffff', this)"></div>
+        <input type="range" id="sizeRange" min="2" max="18" value="4" />
+        <button class="btn-clear" onclick="clearBoard()">Clear</button>
       </div>
 
-      <canvas id="gameCanvas" width="360" height="520"></canvas>
+      <canvas id="drawCanvas" width="360" height="380"></canvas>
 
-      <div class="action-bar">
-        <button class="btn" id="soundBtn" onclick="toggleSound()">🎵 Sound: OFF</button>
-        <button class="btn" id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
-        <button class="btn" onclick="restartGame()">🔄 Restart</button>
+      <div class="chat-card">
+        <div class="chat-feed" id="chatFeed"></div>
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" placeholder="Guess word or chat..." />
+          <button class="btn-send" onclick="sendChat()">Send</button>
+        </div>
       </div>
-
-      <div class="hint">⚡ Swipe fast to slice neon targets! Avoid red bombs!</div>
     </div>
 
     <script>
-      const canvas = document.getElementById('gameCanvas');
+      const canvas = document.getElementById('drawCanvas');
       const ctx = canvas.getContext('2d');
-      const scoreText = document.getElementById('scoreText');
-      const comboText = document.getElementById('comboText');
-      const livesText = document.getElementById('livesText');
-      const soundBtn = document.getElementById('soundBtn');
-      const pauseBtn = document.getElementById('pauseBtn');
+      const chatFeed = document.getElementById('chatFeed');
+      const chatInput = document.getElementById('chatInput');
+      const sizeRange = document.getElementById('sizeRange');
 
-      let score = 0;
-      let lives = 3;
-      let gameOver = false;
-      let isPaused = false;
-      let frame = 0;
+      let brushColor = '#38bdf8';
+      let isDrawing = false;
+      let lastX = 0;
+      let lastY = 0;
 
-      // Web Audio Synthesizer
-      let audioCtx = null;
-      let soundEnabled = false;
-
-      function initAudio() {
-        if (!audioCtx) {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioCtx.state === 'suspended') {
-          audioCtx.resume();
-        }
+      function pickColor(color, el) {
+        brushColor = color;
+        document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+        el.classList.add('active');
       }
 
-      function playSliceTone() {
-        if (!soundEnabled || !audioCtx) return;
-        try {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(600 + Math.random() * 300, audioCtx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.12);
-          gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start();
-          osc.stop(audioCtx.currentTime + 0.12);
-        } catch (e) {}
-      }
-
-      function playBombTone() {
-        if (!soundEnabled || !audioCtx) return;
-        try {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'square';
-          osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.35);
-          gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start();
-          osc.stop(audioCtx.currentTime + 0.35);
-        } catch (e) {}
-      }
-
-      function toggleSound() {
-        initAudio();
-        soundEnabled = !soundEnabled;
-        soundBtn.textContent = soundEnabled ? '🎵 Sound: ON' : '🎵 Sound: OFF';
-        soundBtn.classList.toggle('btn-active', soundEnabled);
-      }
-
-      // Blade Trail State
-      let bladeTrail = [];
-      let isSwiping = false;
-
-      function addTrailPoint(x, y) {
-        bladeTrail.push({ x, y, life: 10 });
-      }
-
-      function getCanvasPos(e) {
+      function getPos(e) {
         const rect = canvas.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -186,339 +173,106 @@
         };
       }
 
-      canvas.addEventListener('touchstart', (e) => {
+      function drawSegment(x1, y1, x2, y2, color, size) {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = size;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+      }
+
+      function startDraw(e) {
         e.preventDefault();
-        initAudio();
-        isSwiping = true;
-        const p = getCanvasPos(e);
-        addTrailPoint(p.x, p.y);
-        if (gameOver) restartGame();
-      }, { passive: false });
+        isDrawing = true;
+        const p = getPos(e);
+        lastX = p.x;
+        lastY = p.y;
+      }
 
-      canvas.addEventListener('touchmove', (e) => {
+      function moveDraw(e) {
+        if (!isDrawing) return;
         e.preventDefault();
-        if (isSwiping) {
-          const p = getCanvasPos(e);
-          addTrailPoint(p.x, p.y);
-          checkSlices(p.x, p.y);
-        }
-      }, { passive: false });
+        const p = getPos(e);
+        const line = {
+          x1: Math.round(lastX),
+          y1: Math.round(lastY),
+          x2: Math.round(p.x),
+          y2: Math.round(p.y),
+          color: brushColor,
+          size: parseInt(sizeRange.value, 10)
+        };
 
-      canvas.addEventListener('touchend', () => { isSwiping = false; });
+        drawSegment(line.x1, line.y1, line.x2, line.y2, line.color, line.size);
+        lastX = p.x;
+        lastY = p.y;
 
-      canvas.addEventListener('mousedown', (e) => {
-        initAudio();
-        isSwiping = true;
-        const p = getCanvasPos(e);
-        addTrailPoint(p.x, p.y);
-        if (gameOver) restartGame();
-      });
-
-      window.addEventListener('mousemove', (e) => {
-        if (isSwiping) {
-          const p = getCanvasPos(e);
-          addTrailPoint(p.x, p.y);
-          checkSlices(p.x, p.y);
-        }
-      });
-
-      window.addEventListener('mouseup', () => { isSwiping = false; });
-
-      // Game Entities
-      let targets = [];
-      let particles = [];
-      let halvedSlices = [];
-
-      const TARGET_TYPES = [
-        { color: '#38bdf8', points: 10, radius: 24, label: 'CYBER' },
-        { color: '#10b981', points: 15, radius: 22, label: 'MATRIX' },
-        { color: '#ec4899', points: 25, radius: 18, label: 'PLASMA' },
-        { isBomb: true, color: '#ef4444', radius: 26, label: 'BOMB' }
-      ];
-
-      function spawnTarget() {
-        const isBomb = Math.random() < 0.22;
-        const type = isBomb
-          ? TARGET_TYPES[3]
-          : TARGET_TYPES[Math.floor(Math.random() * 3)];
-
-        const x = Math.random() * (canvas.width - 80) + 40;
-        const y = canvas.height + 30;
-        const vx = (canvas.width / 2 - x) * 0.015 + (Math.random() - 0.5) * 2;
-        const vy = -(Math.random() * 3 + 11);
-
-        targets.push({
-          x, y, vx, vy,
-          radius: type.radius,
-          color: type.color,
-          points: type.points,
-          isBomb: type.isBomb,
-          label: type.label,
-          rotation: 0,
-          vRot: (Math.random() - 0.5) * 0.1
-        });
+        fetch('/api/draw', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ line })
+        }).catch(() => {});
       }
 
-      function checkSlices(swipeX, swipeY) {
-        if (bladeTrail.length < 2) return;
-        const prev = bladeTrail[bladeTrail.length - 2];
+      function stopDraw() { isDrawing = false; }
 
-        let slicedThisSwipe = 0;
+      canvas.addEventListener('touchstart', startDraw, { passive: false });
+      canvas.addEventListener('touchmove', moveDraw, { passive: false });
+      canvas.addEventListener('touchend', stopDraw);
+      canvas.addEventListener('mousedown', startDraw);
+      window.addEventListener('mousemove', moveDraw);
+      window.addEventListener('mouseup', stopDraw);
 
-        for (let i = targets.length - 1; i >= 0; i--) {
-          const t = targets[i];
-          const dist = Math.hypot(t.x - swipeX, t.y - swipeY);
-
-          if (dist < t.radius + 12) {
-            if (t.isBomb) {
-              // Hit a bomb
-              playBombTone();
-              explodeBomb(t.x, t.y);
-              targets.splice(i, 1);
-              lives--;
-              updateLives();
-              if (lives <= 0) gameOver = true;
-              return;
-            }
-
-            // Sliced a target!
-            playSliceTone();
-            createJuiceParticles(t.x, t.y, t.color);
-            createHalvedTarget(t);
-            score += t.points;
-            scoreText.textContent = score;
-            targets.splice(i, 1);
-            slicedThisSwipe++;
-          }
-        }
-
-        if (slicedThisSwipe >= 2) {
-          score += slicedThisSwipe * 10;
-          scoreText.textContent = score;
-          showComboNotice(`COMBO x${slicedThisSwipe}! +${slicedThisSwipe * 10}`);
-        }
-      }
-
-      function showComboNotice(msg) {
-        comboText.textContent = msg;
-        setTimeout(() => { comboText.textContent = ''; }, 1200);
-      }
-
-      function createHalvedTarget(t) {
-        halvedSlices.push({
-          x: t.x - 8, y: t.y, vx: -2.5, vy: -2, radius: t.radius * 0.7, color: t.color, life: 30
-        });
-        halvedSlices.push({
-          x: t.x + 8, y: t.y, vx: 2.5, vy: -2, radius: t.radius * 0.7, color: t.color, life: 30
-        });
-      }
-
-      function createJuiceParticles(x, y, color) {
-        for (let i = 0; i < 14; i++) {
-          particles.push({
-            x, y,
-            vx: (Math.random() - 0.5) * 9,
-            vy: (Math.random() - 0.5) * 9,
-            size: Math.random() * 3 + 2,
-            life: 25,
-            color
-          });
-        }
-      }
-
-      function explodeBomb(x, y) {
-        for (let i = 0; i < 28; i++) {
-          particles.push({
-            x, y,
-            vx: (Math.random() - 0.5) * 14,
-            vy: (Math.random() - 0.5) * 14,
-            size: Math.random() * 5 + 3,
-            life: 30,
-            color: '#ef4444'
-          });
-        }
-      }
-
-      function updateLives() {
-        livesText.textContent = '❤️'.repeat(Math.max(0, lives));
-      }
-
-      function togglePause() {
-        if (gameOver) return;
-        isPaused = !isPaused;
-        pauseBtn.textContent = isPaused ? '▶ Resume' : '⏸ Pause';
-        if (!isPaused) requestAnimationFrame(gameLoop);
-      }
-
-      function restartGame() {
-        score = 0;
-        lives = 3;
-        gameOver = false;
-        isPaused = false;
-        targets = [];
-        particles = [];
-        halvedSlices = [];
-        bladeTrail = [];
-        scoreText.textContent = score;
-        comboText.textContent = '';
-        updateLives();
-        requestAnimationFrame(gameLoop);
-      }
-
-      function update() {
-        frame++;
-
-        // Spawn rhythm
-        if (frame % Math.max(35, 75 - Math.floor(score * 0.15)) === 0) {
-          spawnTarget();
-          if (Math.random() < 0.3) setTimeout(spawnTarget, 200); // multi-launch wave
-        }
-
-        // Gravity on Targets
-        const gravity = 0.28;
-        for (let i = targets.length - 1; i >= 0; i--) {
-          const t = targets[i];
-          t.x += t.vx;
-          t.y += t.vy;
-          t.vy += gravity;
-          t.rotation += t.vRot;
-
-          // Dropped past bottom
-          if (t.y > canvas.height + 60 && t.vy > 0) {
-            if (!t.isBomb) {
-              lives--;
-              updateLives();
-              if (lives <= 0) gameOver = true;
-            }
-            targets.splice(i, 1);
-          }
-        }
-
-        // Halved slices falling
-        for (let i = halvedSlices.length - 1; i >= 0; i--) {
-          const s = halvedSlices[i];
-          s.x += s.vx;
-          s.y += s.vy;
-          s.vy += gravity;
-          s.life--;
-          if (s.life <= 0) halvedSlices.splice(i, 1);
-        }
-
-        // Splatter sparks
-        for (let i = particles.length - 1; i >= 0; i--) {
-          const p = particles[i];
-          p.x += p.vx;
-          p.y += p.vy;
-          p.life--;
-          if (p.life <= 0) particles.splice(i, 1);
-        }
-
-        // Fade blade trail
-        for (let i = bladeTrail.length - 1; i >= 0; i--) {
-          bladeTrail[i].life--;
-          if (bladeTrail[i].life <= 0) bladeTrail.splice(i, 1);
-        }
-      }
-
-      function draw() {
+      async function clearBoard() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Halved Slices
-        halvedSlices.forEach((s) => {
-          ctx.fillStyle = s.color;
-          ctx.beginPath();
-          ctx.arc(s.x, s.y, s.radius, 0, Math.PI);
-          ctx.fill();
-        });
-
-        // Targets
-        targets.forEach((t) => {
-          ctx.save();
-          ctx.translate(t.x, t.y);
-          ctx.rotate(t.rotation);
-
-          ctx.shadowBlur = t.isBomb ? 18 : 12;
-          ctx.shadowColor = t.color;
-
-          // Glowing circular body
-          ctx.fillStyle = t.color;
-          ctx.beginPath();
-          ctx.arc(0, 0, t.radius, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Core Icon / Warning
-          ctx.shadowBlur = 0;
-          ctx.fillStyle = '#0f172a';
-          if (t.isBomb) {
-            ctx.beginPath();
-            ctx.arc(0, 0, t.radius * 0.5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#fef08a';
-            ctx.font = 'bold 13px system-ui';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('💣', 0, 0);
-          } else {
-            ctx.beginPath();
-            ctx.arc(0, 0, t.radius * 0.45, 0, Math.PI * 2);
-            ctx.fill();
-          }
-
-          ctx.restore();
-        });
-
-        // Particle sparks
-        particles.forEach((p) => {
-          ctx.fillStyle = p.color;
-          ctx.fillRect(p.x, p.y, p.size, p.size);
-        });
-
-        // Electric Blade Swipe Trail
-        if (bladeTrail.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(bladeTrail[0].x, bladeTrail[0].y);
-          for (let i = 1; i < bladeTrail.length; i++) {
-            ctx.lineTo(bladeTrail[i].x, bladeTrail[i].y);
-          }
-          ctx.strokeStyle = '#38bdf8';
-          ctx.shadowColor = '#38bdf8';
-          ctx.shadowBlur = 14;
-          ctx.lineWidth = 5;
-          ctx.lineCap = 'round';
-          ctx.stroke();
-          ctx.shadowBlur = 0;
-        }
-
-        // Game Over
-        if (gameOver) {
-          ctx.fillStyle = 'rgba(3, 7, 18, 0.9)';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-          ctx.fillStyle = '#ef4444';
-          ctx.font = 'bold 26px system-ui';
-          ctx.textAlign = 'center';
-          ctx.fillText('BLADE DOWN', canvas.width / 2, 220);
-
-          ctx.fillStyle = '#f8fafc';
-          ctx.font = '16px system-ui';
-          ctx.fillText('Final Score: ' + score, canvas.width / 2, 255);
-
-          ctx.fillStyle = '#38bdf8';
-          ctx.font = '14px system-ui';
-          ctx.fillText('Swipe or tap to play again', canvas.width / 2, 290);
-        }
+        await fetch('/api/clear', { method: 'POST' });
+        syncBoard();
       }
 
-      function gameLoop() {
-        if (!gameOver && !isPaused) {
-          update();
-          draw();
-          requestAnimationFrame(gameLoop);
-        }
+      async function syncBoard() {
+        try {
+          const res = await fetch('/api/board');
+          const data = await res.json();
+
+          // Redraw lines
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          data.lines.forEach(l => {
+            drawSegment(l.x1, l.y1, l.x2, l.y2, l.color, l.size);
+          });
+
+          // Update Chat
+          chatFeed.innerHTML = data.chat.map(m => `
+            <div class="chat-msg">
+              <span class="chat-sender">${m.sender}:</span>${m.text}
+            </div>
+          `).join('');
+        } catch (e) {}
       }
 
-      updateLives();
-      requestAnimationFrame(gameLoop);
+      async function sendChat() {
+        const text = chatInput.value.trim();
+        if (!text) return;
+        chatInput.value = '';
+        await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sender: /iPhone|Android/i.test(navigator.userAgent) ? 'Phone' : 'PC',
+            text
+          })
+        });
+        syncBoard();
+      }
+
+      chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') sendChat();
+      });
+
+      // Poll updates every 1.5s
+      syncBoard();
+      setInterval(syncBoard, 1500);
     </script>
   </body>
 </html>
