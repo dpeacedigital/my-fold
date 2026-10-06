@@ -2,13 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-    <title>FlashQR Studio</title>
-    <!-- Lightweight, trusted open-source engines for QR creation & scanning -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Cyber Slice 3000</title>
     <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        touch-action: none;
+        -webkit-touch-callout: none;
+        user-select: none;
+      }
       body {
         font-family: system-ui, -apple-system, sans-serif;
         background-color: #030712;
@@ -16,293 +20,505 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 20px 16px;
-        min-height: 100vh;
-      }
-      .container {
-        width: 100%;
-        max-width: 440px;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-      .tab-bar {
-        display: flex;
-        background: #111827;
-        border: 1px solid #1f2937;
-        border-radius: 10px;
-        padding: 4px;
-        gap: 4px;
-      }
-      .tab-btn {
-        flex: 1;
-        padding: 10px;
-        background: transparent;
-        border: none;
-        color: #94a3b8;
-        font-weight: 700;
-        font-size: 0.9rem;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      }
-      .tab-btn.active {
-        background: #0284c7;
-        color: #ffffff;
-      }
-      .card {
-        background: #0f172a;
-        border: 1px solid #1e293b;
-        border-radius: 14px;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-      }
-      label {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: #94a3b8;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-      input[type="text"], textarea {
-        width: 100%;
-        padding: 12px;
-        background: #030712;
-        border: 1px solid #334155;
-        border-radius: 8px;
-        color: #f8fafc;
-        font-size: 0.95rem;
-        outline: none;
-      }
-      input[type="text"]:focus, textarea:focus {
-        border-color: #38bdf8;
-      }
-      .color-options {
-        display: flex;
-        gap: 12px;
-      }
-      .color-field {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-      input[type="color"] {
-        width: 100%;
-        height: 38px;
-        border-radius: 6px;
-        border: 1px solid #334155;
-        background: #030712;
-        cursor: pointer;
-      }
-      .qr-output-area {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
         justify-content: center;
-        padding: 20px;
-        background: #030712;
-        border: 1px solid #1e293b;
-        border-radius: 10px;
-        min-height: 230px;
-      }
-      #qrcode img, #qrcode canvas {
-        border-radius: 8px;
-        max-width: 100%;
-      }
-      .action-btn {
-        padding: 12px;
-        background: #0284c7;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: 700;
-        font-size: 0.95rem;
-        cursor: pointer;
-        transition: background 0.15s ease;
-      }
-      .action-btn:hover { background: #0369a1; }
-      .scanner-window {
-        width: 100%;
-        border-radius: 10px;
+        min-height: 100vh;
         overflow: hidden;
       }
-      .scan-result-box {
-        background: #030712;
-        border: 1px solid #1e293b;
-        border-radius: 8px;
-        padding: 12px;
-        font-size: 0.9rem;
-        word-break: break-all;
-        color: #38bdf8;
-        min-height: 48px;
+      .game-wrap {
         display: flex;
+        flex-direction: column;
         align-items: center;
+        width: 100%;
+        max-width: 400px;
+        padding: 8px;
+        position: relative;
+      }
+      .hud {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 8px;
+        font-weight: 800;
+        font-size: 1rem;
+      }
+      .score-box { color: #38bdf8; }
+      .combo-box { color: #facc15; font-size: 0.9rem; }
+      .lives-box { color: #ef4444; letter-spacing: 2px; }
+      canvas {
+        background: radial-gradient(circle at center, #0f172a 0%, #030712 100%);
+        border: 2px solid #1e293b;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        display: block;
+        cursor: crosshair;
+      }
+      .action-bar {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        width: 100%;
+      }
+      .btn {
+        flex: 1;
+        padding: 10px 0;
+        font-size: 0.85rem;
+        font-weight: 700;
+        border-radius: 8px;
+        cursor: pointer;
+        border: 1px solid #334155;
+        background: #1e293b;
+        color: #f8fafc;
+      }
+      .btn:hover { background: #334155; }
+      .btn-active { color: #4ade80; border-color: #22c55e; }
+      .hint {
+        font-size: 0.75rem;
+        color: #64748b;
+        margin-top: 6px;
+        text-align: center;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <div style="text-align: center; margin-bottom: 4px;">
-        <h1 style="color: #38bdf8; font-size: 1.5rem;">⚡ FlashQR Studio</h1>
-        <p style="color: #64748b; font-size: 0.85rem;">Fast Generator & Camera Scanner</p>
+    <div class="game-wrap">
+      <div class="hud">
+        <span class="score-box">Score: <span id="scoreText">0</span></span>
+        <span class="combo-box" id="comboText"></span>
+        <span class="lives-box" id="livesText">❤️❤️❤️</span>
       </div>
 
-      <div class="tab-bar">
-        <button class="tab-btn active" id="btnTabGen" onclick="switchTab('generate')">Create Code</button>
-        <button class="tab-btn" id="btnTabScan" onclick="switchTab('scan')">Live Scanner</button>
+      <canvas id="gameCanvas" width="360" height="520"></canvas>
+
+      <div class="action-bar">
+        <button class="btn" id="soundBtn" onclick="toggleSound()">🎵 Sound: OFF</button>
+        <button class="btn" id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
+        <button class="btn" onclick="restartGame()">🔄 Restart</button>
       </div>
 
-      <!-- Generator Section -->
-      <div class="card" id="genSection">
-        <div>
-          <label>Target Content / URL</label>
-          <input type="text" id="qrText" value="https://railway.app" placeholder="Paste website, phone number, or text" oninput="renderQR()" />
-        </div>
-
-        <div class="color-options">
-          <div class="color-field">
-            <label>Code Color</label>
-            <input type="color" id="qrColorDark" value="#000000" onchange="renderQR()" />
-          </div>
-          <div class="color-field">
-            <label>Background</label>
-            <input type="color" id="qrColorLight" value="#ffffff" onchange="renderQR()" />
-          </div>
-        </div>
-
-        <div class="qr-output-area">
-          <div id="qrcode"></div>
-        </div>
-
-        <button class="action-btn" onclick="saveQRCode()">💾 Download PNG Image</button>
-      </div>
-
-      <!-- Scanner Section -->
-      <div class="card" id="scanSection" style="display: none;">
-        <div id="scannerReader" class="scanner-window"></div>
-        <button class="action-btn" id="startCamBtn" onclick="toggleCameraScanner()">📷 Start Camera</button>
-
-        <div>
-          <label>Scanned Detection</label>
-          <div class="scan-result-box" id="scanOutput">Camera is inactive. Tap start to scan.</div>
-        </div>
-      </div>
+      <div class="hint">⚡ Swipe fast to slice neon targets! Avoid red bombs!</div>
     </div>
 
     <script>
-      let qrEngine = null;
-      let html5QrScanner = null;
-      let scannerRunning = false;
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      const scoreText = document.getElementById('scoreText');
+      const comboText = document.getElementById('comboText');
+      const livesText = document.getElementById('livesText');
+      const soundBtn = document.getElementById('soundBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
 
-      function renderQR() {
-        const text = document.getElementById('qrText').value.trim() || ' ';
-        const colorDark = document.getElementById('qrColorDark').value;
-        const colorLight = document.getElementById('qrColorLight').value;
-        const container = document.getElementById('qrcode');
+      let score = 0;
+      let lives = 3;
+      let gameOver = false;
+      let isPaused = false;
+      let frame = 0;
 
-        container.innerHTML = '';
-        qrEngine = new QRCode(container, {
-          text: text,
-          width: 190,
-          height: 190,
-          colorDark: colorDark,
-          colorLight: colorLight,
-          correctLevel: QRCode.CorrectLevel.H
+      // Web Audio Synthesizer
+      let audioCtx = null;
+      let soundEnabled = false;
+
+      function initAudio() {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+      }
+
+      function playSliceTone() {
+        if (!soundEnabled || !audioCtx) return;
+        try {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(600 + Math.random() * 300, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.12);
+          gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.12);
+        } catch (e) {}
+      }
+
+      function playBombTone() {
+        if (!soundEnabled || !audioCtx) return;
+        try {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.35);
+          gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.35);
+        } catch (e) {}
+      }
+
+      function toggleSound() {
+        initAudio();
+        soundEnabled = !soundEnabled;
+        soundBtn.textContent = soundEnabled ? '🎵 Sound: ON' : '🎵 Sound: OFF';
+        soundBtn.classList.toggle('btn-active', soundEnabled);
+      }
+
+      // Blade Trail State
+      let bladeTrail = [];
+      let isSwiping = false;
+
+      function addTrailPoint(x, y) {
+        bladeTrail.push({ x, y, life: 10 });
+      }
+
+      function getCanvasPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: (clientX - rect.left) * (canvas.width / rect.width),
+          y: (clientY - rect.top) * (canvas.height / rect.height)
+        };
+      }
+
+      canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        initAudio();
+        isSwiping = true;
+        const p = getCanvasPos(e);
+        addTrailPoint(p.x, p.y);
+        if (gameOver) restartGame();
+      }, { passive: false });
+
+      canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (isSwiping) {
+          const p = getCanvasPos(e);
+          addTrailPoint(p.x, p.y);
+          checkSlices(p.x, p.y);
+        }
+      }, { passive: false });
+
+      canvas.addEventListener('touchend', () => { isSwiping = false; });
+
+      canvas.addEventListener('mousedown', (e) => {
+        initAudio();
+        isSwiping = true;
+        const p = getCanvasPos(e);
+        addTrailPoint(p.x, p.y);
+        if (gameOver) restartGame();
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (isSwiping) {
+          const p = getCanvasPos(e);
+          addTrailPoint(p.x, p.y);
+          checkSlices(p.x, p.y);
+        }
+      });
+
+      window.addEventListener('mouseup', () => { isSwiping = false; });
+
+      // Game Entities
+      let targets = [];
+      let particles = [];
+      let halvedSlices = [];
+
+      const TARGET_TYPES = [
+        { color: '#38bdf8', points: 10, radius: 24, label: 'CYBER' },
+        { color: '#10b981', points: 15, radius: 22, label: 'MATRIX' },
+        { color: '#ec4899', points: 25, radius: 18, label: 'PLASMA' },
+        { isBomb: true, color: '#ef4444', radius: 26, label: 'BOMB' }
+      ];
+
+      function spawnTarget() {
+        const isBomb = Math.random() < 0.22;
+        const type = isBomb
+          ? TARGET_TYPES[3]
+          : TARGET_TYPES[Math.floor(Math.random() * 3)];
+
+        const x = Math.random() * (canvas.width - 80) + 40;
+        const y = canvas.height + 30;
+        const vx = (canvas.width / 2 - x) * 0.015 + (Math.random() - 0.5) * 2;
+        const vy = -(Math.random() * 3 + 11);
+
+        targets.push({
+          x, y, vx, vy,
+          radius: type.radius,
+          color: type.color,
+          points: type.points,
+          isBomb: type.isBomb,
+          label: type.label,
+          rotation: 0,
+          vRot: (Math.random() - 0.5) * 0.1
         });
       }
 
-      function saveQRCode() {
-        const img = document.querySelector('#qrcode img');
-        if (img && img.src) {
-          const a = document.createElement('a');
-          a.href = img.src;
-          a.download = 'flashqr-code.png';
-          a.click();
-        } else {
-          const canvas = document.querySelector('#qrcode canvas');
-          if (canvas) {
-            const a = document.createElement('a');
-            a.href = canvas.toDataURL('image/png');
-            a.download = 'flashqr-code.png';
-            a.click();
+      function checkSlices(swipeX, swipeY) {
+        if (bladeTrail.length < 2) return;
+        const prev = bladeTrail[bladeTrail.length - 2];
+
+        let slicedThisSwipe = 0;
+
+        for (let i = targets.length - 1; i >= 0; i--) {
+          const t = targets[i];
+          const dist = Math.hypot(t.x - swipeX, t.y - swipeY);
+
+          if (dist < t.radius + 12) {
+            if (t.isBomb) {
+              // Hit a bomb
+              playBombTone();
+              explodeBomb(t.x, t.y);
+              targets.splice(i, 1);
+              lives--;
+              updateLives();
+              if (lives <= 0) gameOver = true;
+              return;
+            }
+
+            // Sliced a target!
+            playSliceTone();
+            createJuiceParticles(t.x, t.y, t.color);
+            createHalvedTarget(t);
+            score += t.points;
+            scoreText.textContent = score;
+            targets.splice(i, 1);
+            slicedThisSwipe++;
           }
         }
-      }
 
-      function switchTab(mode) {
-        const genSec = document.getElementById('genSection');
-        const scanSec = document.getElementById('scanSection');
-        const btnGen = document.getElementById('btnTabGen');
-        const btnScan = document.getElementById('btnTabScan');
-
-        if (mode === 'generate') {
-          genSec.style.display = 'flex';
-          scanSec.style.display = 'none';
-          btnGen.classList.add('active');
-          btnScan.classList.remove('active');
-          stopScanner();
-        } else {
-          genSec.style.display = 'none';
-          scanSec.style.display = 'flex';
-          btnGen.classList.remove('active');
-          btnScan.classList.add('active');
+        if (slicedThisSwipe >= 2) {
+          score += slicedThisSwipe * 10;
+          scoreText.textContent = score;
+          showComboNotice(`COMBO x${slicedThisSwipe}! +${slicedThisSwipe * 10}`);
         }
       }
 
-      function toggleCameraScanner() {
-        if (scannerRunning) {
-          stopScanner();
-        } else {
-          startScanner();
-        }
+      function showComboNotice(msg) {
+        comboText.textContent = msg;
+        setTimeout(() => { comboText.textContent = ''; }, 1200);
       }
 
-      function startScanner() {
-        const btn = document.getElementById('startCamBtn');
-        const output = document.getElementById('scanOutput');
-        output.textContent = 'Point your lens at any QR code...';
-
-        html5QrScanner = new Html5Qrcode('scannerReader');
-        html5QrScanner.start(
-          { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 220, height: 220 } },
-          (decodedText) => {
-            output.textContent = decodedText;
-            if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
-              output.innerHTML = `<a href="${decodedText}" target="_blank" style="color: #38bdf8; text-decoration: underline;">${decodedText} ↗</a>`;
-            }
-            stopScanner();
-          },
-          () => {} // suppress read frame misses
-        ).then(() => {
-          scannerRunning = true;
-          btn.textContent = '🛑 Stop Camera';
-          btn.style.background = '#ef4444';
-        }).catch((err) => {
-          output.textContent = 'Camera error: ' + err;
+      function createHalvedTarget(t) {
+        halvedSlices.push({
+          x: t.x - 8, y: t.y, vx: -2.5, vy: -2, radius: t.radius * 0.7, color: t.color, life: 30
+        });
+        halvedSlices.push({
+          x: t.x + 8, y: t.y, vx: 2.5, vy: -2, radius: t.radius * 0.7, color: t.color, life: 30
         });
       }
 
-      function stopScanner() {
-        if (html5QrScanner && scannerRunning) {
-          html5QrScanner.stop().then(() => {
-            html5QrScanner.clear();
-            scannerRunning = false;
-            const btn = document.getElementById('startCamBtn');
-            if (btn) {
-              btn.textContent = '📷 Start Camera';
-              btn.style.background = '#0284c7';
-            }
-          }).catch(() => {});
+      function createJuiceParticles(x, y, color) {
+        for (let i = 0; i < 14; i++) {
+          particles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 9,
+            vy: (Math.random() - 0.5) * 9,
+            size: Math.random() * 3 + 2,
+            life: 25,
+            color
+          });
         }
       }
 
-      // Initial render on load
-      renderQR();
+      function explodeBomb(x, y) {
+        for (let i = 0; i < 28; i++) {
+          particles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 14,
+            vy: (Math.random() - 0.5) * 14,
+            size: Math.random() * 5 + 3,
+            life: 30,
+            color: '#ef4444'
+          });
+        }
+      }
+
+      function updateLives() {
+        livesText.textContent = '❤️'.repeat(Math.max(0, lives));
+      }
+
+      function togglePause() {
+        if (gameOver) return;
+        isPaused = !isPaused;
+        pauseBtn.textContent = isPaused ? '▶ Resume' : '⏸ Pause';
+        if (!isPaused) requestAnimationFrame(gameLoop);
+      }
+
+      function restartGame() {
+        score = 0;
+        lives = 3;
+        gameOver = false;
+        isPaused = false;
+        targets = [];
+        particles = [];
+        halvedSlices = [];
+        bladeTrail = [];
+        scoreText.textContent = score;
+        comboText.textContent = '';
+        updateLives();
+        requestAnimationFrame(gameLoop);
+      }
+
+      function update() {
+        frame++;
+
+        // Spawn rhythm
+        if (frame % Math.max(35, 75 - Math.floor(score * 0.15)) === 0) {
+          spawnTarget();
+          if (Math.random() < 0.3) setTimeout(spawnTarget, 200); // multi-launch wave
+        }
+
+        // Gravity on Targets
+        const gravity = 0.28;
+        for (let i = targets.length - 1; i >= 0; i--) {
+          const t = targets[i];
+          t.x += t.vx;
+          t.y += t.vy;
+          t.vy += gravity;
+          t.rotation += t.vRot;
+
+          // Dropped past bottom
+          if (t.y > canvas.height + 60 && t.vy > 0) {
+            if (!t.isBomb) {
+              lives--;
+              updateLives();
+              if (lives <= 0) gameOver = true;
+            }
+            targets.splice(i, 1);
+          }
+        }
+
+        // Halved slices falling
+        for (let i = halvedSlices.length - 1; i >= 0; i--) {
+          const s = halvedSlices[i];
+          s.x += s.vx;
+          s.y += s.vy;
+          s.vy += gravity;
+          s.life--;
+          if (s.life <= 0) halvedSlices.splice(i, 1);
+        }
+
+        // Splatter sparks
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.life--;
+          if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        // Fade blade trail
+        for (let i = bladeTrail.length - 1; i >= 0; i--) {
+          bladeTrail[i].life--;
+          if (bladeTrail[i].life <= 0) bladeTrail.splice(i, 1);
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Halved Slices
+        halvedSlices.forEach((s) => {
+          ctx.fillStyle = s.color;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.radius, 0, Math.PI);
+          ctx.fill();
+        });
+
+        // Targets
+        targets.forEach((t) => {
+          ctx.save();
+          ctx.translate(t.x, t.y);
+          ctx.rotate(t.rotation);
+
+          ctx.shadowBlur = t.isBomb ? 18 : 12;
+          ctx.shadowColor = t.color;
+
+          // Glowing circular body
+          ctx.fillStyle = t.color;
+          ctx.beginPath();
+          ctx.arc(0, 0, t.radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Core Icon / Warning
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = '#0f172a';
+          if (t.isBomb) {
+            ctx.beginPath();
+            ctx.arc(0, 0, t.radius * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#fef08a';
+            ctx.font = 'bold 13px system-ui';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('💣', 0, 0);
+          } else {
+            ctx.beginPath();
+            ctx.arc(0, 0, t.radius * 0.45, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.restore();
+        });
+
+        // Particle sparks
+        particles.forEach((p) => {
+          ctx.fillStyle = p.color;
+          ctx.fillRect(p.x, p.y, p.size, p.size);
+        });
+
+        // Electric Blade Swipe Trail
+        if (bladeTrail.length > 1) {
+          ctx.beginPath();
+          ctx.moveTo(bladeTrail[0].x, bladeTrail[0].y);
+          for (let i = 1; i < bladeTrail.length; i++) {
+            ctx.lineTo(bladeTrail[i].x, bladeTrail[i].y);
+          }
+          ctx.strokeStyle = '#38bdf8';
+          ctx.shadowColor = '#38bdf8';
+          ctx.shadowBlur = 14;
+          ctx.lineWidth = 5;
+          ctx.lineCap = 'round';
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+
+        // Game Over
+        if (gameOver) {
+          ctx.fillStyle = 'rgba(3, 7, 18, 0.9)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          ctx.fillStyle = '#ef4444';
+          ctx.font = 'bold 26px system-ui';
+          ctx.textAlign = 'center';
+          ctx.fillText('BLADE DOWN', canvas.width / 2, 220);
+
+          ctx.fillStyle = '#f8fafc';
+          ctx.font = '16px system-ui';
+          ctx.fillText('Final Score: ' + score, canvas.width / 2, 255);
+
+          ctx.fillStyle = '#38bdf8';
+          ctx.font = '14px system-ui';
+          ctx.fillText('Swipe or tap to play again', canvas.width / 2, 290);
+        }
+      }
+
+      function gameLoop() {
+        if (!gameOver && !isPaused) {
+          update();
+          draw();
+          requestAnimationFrame(gameLoop);
+        }
+      }
+
+      updateLives();
+      requestAnimationFrame(gameLoop);
     </script>
   </body>
 </html>
